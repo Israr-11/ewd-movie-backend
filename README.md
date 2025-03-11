@@ -34,13 +34,13 @@ Make sure you have the following installed:
 2. **Install dependencies:**
 
    ```bash
-  npm install
+   npm install
 
 3. **Build the TypeScript files:**
    Before deploying, you need to build the TypeScript files into JavaScript:
 
    ```bash
-  npm run build
+   npm run build
 
 4. **Configure AWS credentials**  
   Ensure that AWS CLI is configured with your AWS account credentials. If not, configure it using:
@@ -49,8 +49,8 @@ Make sure you have the following installed:
   aws configure
 
 5. **Deploy on AWS**  
-For deploying the code, run the command given below:
+To deploy the code, run the command given below:
 
    ```bash
-  npm run deploy  
+   npm run deploy  
   
