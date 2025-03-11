@@ -46,7 +46,7 @@ Make sure you have the following installed:
   Ensure that AWS CLI is configured with your AWS account credentials. If not, configure it using:
 
    ```bash
-  aws configure
+   aws configure
 
 5. **Deploy on AWS**  
 To deploy the code, run the command given below:
