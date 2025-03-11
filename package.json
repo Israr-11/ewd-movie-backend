@@ -6,11 +6,10 @@
   },
   "scripts": {
     "build": "tsc",
-    "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk"
+    "deploy": "cdk deploy"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.147",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.7.9",
