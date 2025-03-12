@@ -1,59 +1,58 @@
-import { DynamoDB } from 'aws-sdk';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { Review } from '../models/review-model';
 
+
 export class ReviewService {
-    private db: DynamoDB.DocumentClient;
+    private docClient: DynamoDBDocumentClient;
     private tableName: string;
 
     constructor() {
-        this.db = new DynamoDB.DocumentClient();
+        const client = new DynamoDBClient({});
+        this.docClient = DynamoDBDocumentClient.from(client);
         this.tableName = process.env.TABLE_NAME || 'MovieReviews';
     }
 
     async getReviewsByMovieId(movieId: number): Promise<Review[]> {
-        const params = {
+        const command = new QueryCommand({
             TableName: this.tableName,
             KeyConditionExpression: 'MovieId = :movieId',
             ExpressionAttributeValues: { ':movieId': movieId }
-        };
+        });
 
-        const result = await this.db.query(params).promise();
+        const result = await this.docClient.send(command);
         return result.Items as Review[] || [];
     }
 
     async addReview(movieId: number, review: string, email: string): Promise<Review> {
+        const now = new Date();
         const newReview: Review = {
             MovieId: movieId,
-            ReviewId: Date.now().toString(),
+            ReviewId: Math.floor(now.getTime() / 1000), 
             ReviewerId: email,
             Content: review,
-            ReviewDate: new Date().toISOString()
+            ReviewDate: now.toISOString().split('T')[0]
         };
 
-        const params = { TableName: this.tableName, Item: newReview };
-        await this.db.put(params).promise();
+        const command = new PutCommand({
+            TableName: this.tableName,
+            Item: newReview
+        });
+
+        await this.docClient.send(command);
         return newReview;
     }
 
-    async deleteReview(movieId: number, reviewId: string) {
-        const params = {
-            TableName: this.tableName,
-            Key: { MovieId: movieId, ReviewId: reviewId }
-        };
-        await this.db.delete(params).promise();
-        return { message: 'Review deleted' };
-    }
-
-    async updateReview(movieId: number, reviewId: string, newContent: string) {
-        const params = {
+    async updateReview(movieId: number, reviewId: number, newContent: string) {
+        const command = new UpdateCommand({
             TableName: this.tableName,
             Key: { MovieId: movieId, ReviewId: reviewId },
             UpdateExpression: 'SET Content = :newContent',
             ExpressionAttributeValues: { ':newContent': newContent },
             ReturnValues: 'UPDATED_NEW'
-        };
+        });
 
-        const result = await this.db.update(params).promise();
+        const result = await this.docClient.send(command);
         return result.Attributes;
     }
 }
