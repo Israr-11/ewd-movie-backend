@@ -16,6 +16,13 @@ export class DbStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     });
 
+
+    this.movieReviewsTable.addGlobalSecondaryIndex({
+      indexName: 'TranslationsIndex',
+      partitionKey: { name: 'ReviewId', type: dynamodb.AttributeType.NUMBER },
+      sortKey: { name: 'Language', type: dynamodb.AttributeType.NUMBER }
+    });
+
     new cdk.CfnOutput(this, 'TableName', { value: this.movieReviewsTable.tableName });
   }
 }
