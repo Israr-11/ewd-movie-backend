@@ -24,14 +24,14 @@ The project leverages several AWS services:
 
 ## AUTHENTICATION Endpoints
 ```http
-POST /auth/register                     // Registartion endpoint
-PUT /auth/login   // Login endpoint
-GET /auth/logout  // Logout endpoint
+POST /auth/register  //Registration endpoint
+PUT /auth/login     // Login endpoint
+GET /auth/logout   // Logout endpoint
 ```
 
 ## API Endpoints
 ```http
-GET /movies/{movieId}/reviews?reviewerName=email@example.com  // Filter by reviewer
+GET /movies/{movieId}/reviews?reviewerName=email@example.com  // Filter by reviewer email and movie id
 POST /movies/reviews                       // Add new review
 PUT /movies/{movieId}/reviews/{reviewId}   // Update review (authenticated)
 GET /movies/{movieId}/reviews/{reviewId}/translate?language=es  // Get translated review
@@ -80,13 +80,6 @@ ewd-movie-backend/
 
 ## Usage Examples
 ### Get Movie Reviews
-```http
-// Get all reviews for movie ID 123
-GET /movies/123/reviews
-
-// Get specific review
-GET /movies/123/reviews?reviewId=456
-
 // Get reviews by reviewer
 GET /movies/123/reviews?reviewerName=user@example.com
 ```
