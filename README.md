@@ -79,7 +79,9 @@ ewd-movie-backend/
 ```
 
 ## Usage Examples
+
 ### Get Movie Reviews
+```http
 // Get reviews by reviewer
 GET /movies/123/reviews?reviewerName=user@example.com
 ```
