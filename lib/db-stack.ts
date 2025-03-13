@@ -5,6 +5,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 
 export class DbStack extends cdk.Stack {
   public readonly movieReviewsTable: dynamodb.Table;
+  public readonly translationsTable: dynamodb.Table;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -17,11 +18,13 @@ export class DbStack extends cdk.Stack {
     });
 
 
-    this.movieReviewsTable.addGlobalSecondaryIndex({
-      indexName: 'TranslationsIndex',
+    this.translationsTable = new dynamodb.Table(this, 'ReviewTranslationsTable', {
+      tableName: 'ReviewTranslations',
       partitionKey: { name: 'ReviewId', type: dynamodb.AttributeType.NUMBER },
-      sortKey: { name: 'Language', type: dynamodb.AttributeType.NUMBER }
-    });
+      sortKey: { name: 'Language', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    })
+    
 
     new cdk.CfnOutput(this, 'TableName', { value: this.movieReviewsTable.tableName });
   }

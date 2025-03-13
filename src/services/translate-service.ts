@@ -6,31 +6,31 @@ import { Review } from '../models/review-model';
 export class TranslateService {
     private translateClient: TranslateClient;
     private docClient: DynamoDBDocumentClient;
-    private tableName: string;
+    private reviewsTable: string;
+    private translationsTable: string;
 
     constructor() {
         this.translateClient = new TranslateClient({});
         this.docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
-        this.tableName = process.env.TABLE_NAME || 'MovieReviews';
+        this.reviewsTable = process.env.REVIEWS_TABLE || 'MovieReviews';
+        this.translationsTable = process.env.TRANSLATIONS_TABLE || 'ReviewTranslations';
     }
 
-    private async getCachedTranslation(reviewId: number, language: string) {
-        const command = new QueryCommand({
-            TableName: this.tableName,
-            IndexName: 'TranslationsIndex',
-            KeyConditionExpression: 'ReviewId = :reviewId AND Language = :language',
-            ExpressionAttributeValues: {
-                ':reviewId': reviewId,
-                ':language': language
+    private async getCachedTranslation(reviewId: number, movieId: number, language: string) {
+        const command = new GetCommand({
+            TableName: this.translationsTable,
+            Key: {
+                ReviewId: reviewId,
+                Language: language
             }
         });
         const result = await this.docClient.send(command);
-        return result.Items?.[0]?.TranslatedContent;
+        return result.Item?.TranslatedContent;
     }
 
     private async getReview(movieId: number, reviewId: number): Promise<Review | null> {
         const command = new GetCommand({
-            TableName: this.tableName,
+            TableName: this.reviewsTable,
             Key: {
                 MovieId: movieId,
                 ReviewId: reviewId
@@ -45,16 +45,31 @@ export class TranslateService {
             throw new Error('Target language is required');
         }
 
-        const cachedTranslation = await this.getCachedTranslation(reviewId, targetLanguage);
-        if (cachedTranslation) return cachedTranslation;
+        // Check translation cache first
+        const cachedTranslation = await this.getCachedTranslation(reviewId, movieId, targetLanguage);
+        if (cachedTranslation) {
+            return {
+                reviewId,
+                movieId,
+                language: targetLanguage,
+                content: cachedTranslation
+            };
+        }
 
+        // Get original review if no cached translation
         const review = await this.getReview(movieId, reviewId);
         if (!review) return null;
 
+        // Translate and cache
         const translated = await this.translateText(review.Content, targetLanguage);
         await this.cacheTranslation(reviewId, movieId, targetLanguage, translated);
 
-        return translated;
+        return {
+            reviewId,
+            movieId,
+            language: targetLanguage,
+            content: translated
+        };
     }
 
     private async translateText(text: string, targetLanguage: string) {
@@ -69,12 +84,13 @@ export class TranslateService {
 
     private async cacheTranslation(reviewId: number, movieId: number, language: string, translation: string) {
         await this.docClient.send(new PutCommand({
-            TableName: this.tableName,
+            TableName: this.translationsTable,
             Item: {
                 ReviewId: reviewId,
                 MovieId: movieId,
                 Language: language,
-                TranslatedContent: translation
+                TranslatedContent: translation,
+                CreatedAt: new Date().toISOString()
             }
         }));
     }

@@ -2,15 +2,14 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
-import { AuthStack } from './auth-stack';
 import { DbStack } from './db-stack';
 
 export class EwdMovieBackendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const authStack = new AuthStack(this, 'AuthStack');
     const dbStack = new DbStack(this, 'DbStack');
 
     const apiLambda = new lambda.Function(this, 'ApiLambda', {
@@ -18,44 +17,89 @@ export class EwdMovieBackendStack extends cdk.Stack {
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../dist')),
       environment: {
-        TABLE_NAME: dbStack.movieReviewsTable.tableName,
-        USER_POOL_ID: authStack.userPool.userPoolId,
-        CLIENT_ID: authStack.userPoolClient.userPoolClientId,
+        REVIEWS_TABLE: dbStack.movieReviewsTable.tableName,
+        TRANSLATIONS_TABLE: dbStack.translationsTable.tableName,
       },
     });
 
+    // Grant Lambda Permissions
     dbStack.movieReviewsTable.grantReadWriteData(apiLambda);
+    dbStack.translationsTable.grantReadWriteData(apiLambda);
+    apiLambda.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'translate:TranslateText',
+        'comprehend:DetectDominantLanguage'
+      ],
+      resources: ['*']
+    }));
 
     const api = new apigateway.RestApi(this, 'MovieReviewAPI', {
       restApiName: 'MovieReviewAPI',
-      defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: ['Content-Type', 'Authorization']
+    });
+
+    // Request Validators
+    const reviewModel = new apigateway.Model(this, 'ReviewModel', {
+      restApi: api,
+      contentType: 'application/json',
+      modelName: 'ReviewModel',
+      schema: {
+        type: apigateway.JsonSchemaType.OBJECT,
+        required: ['review', 'email'],
+        properties: {
+          review: { 
+            type: apigateway.JsonSchemaType.STRING,
+            minLength: 1,
+            maxLength: 1000
+          },
+          email: { 
+            type: apigateway.JsonSchemaType.STRING,
+            format: 'email'
+          }
+        }
       }
     });
 
     const getReviewsIntegration = new apigateway.LambdaIntegration(apiLambda);
 
-    // Clear route structure
+    // API Resources and Methods
     const moviesResource = api.root.addResource('movies');
-    const reviewsResource = moviesResource.addResource('reviews');
-    
-    // POST /movies/reviews
-    reviewsResource.addMethod('POST', getReviewsIntegration);
+    const movieReviewsResource = moviesResource.addResource('reviews');
+    const movieIdResource = movieReviewsResource.addResource('{movieId}');
 
-    // GET /movies/reviews/{movieId}
-    const movieIdResource = reviewsResource.addResource('{movieId}');
+    // GET /movies/reviews/[movieId]
     movieIdResource.addMethod('GET', getReviewsIntegration);
 
-    // PUT /movies/reviews/{movieId}/{reviewId}
-    const reviewIdResource = movieIdResource.addResource('{reviewId}');
+    // POST /movies/reviews
+    movieReviewsResource.addMethod('POST', getReviewsIntegration, {
+      requestValidator: new apigateway.RequestValidator(this, 'ReviewValidator', {
+        restApi: api,
+        validateRequestBody: true
+      }),
+      requestModels: {
+        'application/json': reviewModel
+      }
+    });
+
+    // PUT /movies/{movieId}/reviews/{reviewId}
+    const movieResource = moviesResource.addResource('{movieId}');
+    const reviewsResource = movieResource.addResource('reviews');
+    const reviewIdResource = reviewsResource.addResource('{reviewId}');
     reviewIdResource.addMethod('PUT', getReviewsIntegration);
 
-    // Translation endpoint
-    const translationResource = reviewIdResource.addResource('translation');
-    translationResource.addMethod('GET', getReviewsIntegration);
+    // GET /reviews/{reviewId}/{movieId}/translation
+    const directReviewsResource = api.root.addResource('reviews');
+    const translationPath = directReviewsResource
+      .addResource('{reviewId}')
+      .addResource('{movieId}')
+      .addResource('translation');
+    
+    translationPath.addMethod('GET', getReviewsIntegration, {
+      requestValidator: new apigateway.RequestValidator(this, 'TranslationValidator', {
+        restApi: api,
+        validateRequestParameters: true
+      })
+    });
 
     new cdk.CfnOutput(this, 'ApiEndpoint', { value: api.url });
-  }
-}
+  }}
