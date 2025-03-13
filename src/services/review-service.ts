@@ -13,6 +13,29 @@ export class ReviewService {
         this.tableName = process.env.TABLE_NAME || 'MovieReviews';
     }
 
+    private async getNextMovieId(): Promise<number> {
+        const command = new UpdateCommand({
+            TableName: this.tableName,
+            Key: { 
+                MovieId: 0,
+                ReviewId: 0 
+            },
+            UpdateExpression: 'SET #counter = if_not_exists(#counter, :start) + :increment',
+            ExpressionAttributeNames: {
+                '#counter': 'Counter'
+            },
+            ExpressionAttributeValues: {
+                ':start': 1,
+                ':increment': 1
+            },
+            ReturnValues: 'UPDATED_NEW'
+        });
+        
+        const result = await this.docClient.send(command);
+        return result.Attributes?.Counter;
+    }
+    
+
     async getReviewsByMovieId(movieId: number): Promise<Review[]> {
         const command = new QueryCommand({
             TableName: this.tableName,
@@ -24,8 +47,11 @@ export class ReviewService {
         return result.Items as Review[] || [];
     }
 
-    async addReview(movieId: number, review: string, email: string): Promise<Review> {
+    async addReview(review: string, email: string): Promise<Review> {
+        
+        const movieId = await this.getNextMovieId();
         const now = new Date();
+
         const newReview: Review = {
             MovieId: movieId,
             ReviewId: Math.floor(now.getTime() / 1000), 

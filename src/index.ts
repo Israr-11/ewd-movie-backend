@@ -3,7 +3,7 @@ import { getMovieReviews, addReview, updateReview, getTranslation } from './cont
 
 export const handler = async (event: APIGatewayEvent) => {
   try {
-    // GET /movies/reviews/{movieId}
+    // GET /movies/reviews/[movieId]
     if (event.httpMethod === 'GET' && event.path.match(/\/movies\/reviews\/\d+$/)) {
       return await getMovieReviews(event);
     }
@@ -13,15 +13,15 @@ export const handler = async (event: APIGatewayEvent) => {
       return await addReview(event);
     }
 
-    // PUT /movies/reviews/{movieId}/{reviewId}
-    if (event.httpMethod === 'PUT' && event.path.match(/\/movies\/reviews\/\d+\/\w+$/)) {
+    // PUT /movies/{movieId}/reviews/{reviewId}
+    if (event.httpMethod === 'PUT' && event.path.match(/\/movies\/\d+\/reviews\/\d+$/)) {
       return await updateReview(event);
     }
 
+    // GET /reviews/{reviewId}/{movieId}/translation
     if (event.httpMethod === 'GET' && event.path.match(/\/reviews\/\d+\/\d+\/translation$/)) {
       return await getTranslation(event);
-  }
-  
+    }
 
     return { statusCode: 404, body: 'Not Found' };
   } catch (error) {

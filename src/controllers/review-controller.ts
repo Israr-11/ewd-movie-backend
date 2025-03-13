@@ -25,15 +25,12 @@ export const getMovieReviews = async (event: APIGatewayEvent) => {
     return { statusCode: 200, body: JSON.stringify(filteredReviews) };
 };
 
-
-
-
 export const addReview = async (event: APIGatewayEvent) => {
     
-    const { movieId, review, email } = JSON.parse(event.body || '{}');
-    if (!movieId || !review || !email) return { statusCode: 400, body: 'Missing required fields' };
+    const { review, email } = JSON.parse(event.body || '{}');
+    if (!review || !email) return { statusCode: 400, body: 'Missing required fields' };
 
-    const newReview = await reviewService.addReview(movieId, review, email);
+    const newReview = await reviewService.addReview(review, email);
     return { statusCode: 201, body: JSON.stringify(newReview) };
 };
 
