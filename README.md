@@ -1,56 +1,108 @@
-# EWD Movie Backend - AWS CDK TypeScript Project
+# EWD Movie Backend - AWS Serverless Movie Review API
 
-Welcome to the **EWD Movie Backend** project, an API built using **AWS CDK**, **TypeScript**, and **Lambda**. This backend provides a serverless API to manage movie reviews with Lambda functions and API Gateway.
+A robust, serverless movie review management system built with AWS CDK and TypeScript, enabling users to create, retrieve, and translate movie reviews.
 
-### The project leverages AWS services to provide a scalable, cost-efficient, serverless backend:
+## 🚀 Key Features
+### Movie Review Management
+- Get movie reviews with filtering by reviewer or review ID
+- Add new reviews
+- Update existing reviews with authorization
+- Translate reviews to different languages
 
-- **AWS Lambda** for the backend logic.
-- **API Gateway** for routing HTTP requests to Lambda.
-- **DynamoDB** to store movie review data.
+### Security & Authorization
+- Cognito-based user authentication
+- User-specific review management
+- Protected review updates
 
-## Project Structure
+## 🏗 Architecture
+The project leverages several AWS services:
+- **AWS Lambda** - Serverless compute for review operations
+- **API Gateway** - RESTful API endpoints
+- **DynamoDB** - Review data persistence
+- **Amazon Translate** - Review translation capabilities
+- **Cognito** - User authentication and authorization
 
-- **src/**: Contains the TypeScript source code for the backend logic (Lambda functions).
-- **lib/**: Contains the AWS CDK stack definition.
-- **bin/**: Contains entry point for deploying the stack.
+## 📚 API Endpoints
+```http
+GET /movies/{movieId}/reviews              // Get all reviews for a movie
+GET /movies/{movieId}/reviews?reviewId=1   // Filter by review ID
+GET /movies/{movieId}/reviews?reviewerName=email@example.com  // Filter by reviewer
+POST /movies/reviews                       // Add new review
+PUT /movies/{movieId}/reviews/{reviewId}   // Update review (authenticated)
+GET /movies/{movieId}/reviews/{reviewId}/translate?language=es  // Get translated review
+```
 
-## Prerequisites
+## 🛠 Prerequisites
+- Node.js (v20+)
+- AWS CLI (configured)
+- AWS CDK v2
+- TypeScript knowledge
 
-Make sure you have the following installed:
+## 🚦 Getting Started
+### Clone & Install
+```sh
+git clone <repository-url>
+cd ewd-movie-backend
+npm install
+```
 
-- **Node.js** (v20 or higher recommended)
-- **npm** (Node Package Manager)
-- **AWS CLI** (configured with appropriate AWS credentials)
-- **AWS CDK** (v2.x)
+### Build
+```sh
+npm run build
+```
 
-## Setup
+### Deploy
+```sh
+cdk deploy
+```
 
-1. **Clone the repository:**
+## 🏗 Project Structure
+```
+ewd-movie-backend/
+├── src/
+│   ├── controllers/
+│   │   └── review-controller.ts    # Review management logic
+│   ├── services/
+│   │   ├── review-service.ts       # Review business logic
+│   │   └── translate-service.ts    # Translation handling
+├── lib/
+│   └── stack-definition.ts         # CDK infrastructure
+└── bin/
+    └── app.ts                      # CDK app entry point
+```
 
-   ```bash
-   git clone <repo_url>
-   cd ewd_movie_backend
+## 💡 Usage Examples
+### Get Movie Reviews
+```http
+// Get all reviews for movie ID 123
+GET /movies/123/reviews
 
-2. **Install dependencies:**
+// Get specific review
+GET /movies/123/reviews?reviewId=456
 
-   ```bash
-   npm install
+// Get reviews by reviewer
+GET /movies/123/reviews?reviewerName=user@example.com
+```
 
-3. **Build the TypeScript files:**
-   Before deploying, you need to build the TypeScript files into JavaScript:
+### Add Review
+```http
+POST /movies/reviews
+{
+  "review": "Great movie!",
+  "email": "reviewer@example.com"
+}
+```
 
-   ```bash
-   npm run build
+### Translate Review
+```http
+// Translate review 456 for movie 123 to Spanish
+GET /movies/123/reviews/456/translate?language=es
+```
 
-4. **Configure AWS credentials**  
-  Ensure that AWS CLI is configured with your AWS account credentials. If not, configure it using:
+## 🔐 Security
+- Review updates are protected with Cognito authentication
+- Users can only modify their own reviews
+- API endpoints are secured with proper authorization
 
-   ```bash
-   aws configure
-
-5. **Deploy on AWS**  
-To deploy the code, run the command given below:
-
-   ```bash
-   npm run deploy  
-  
+## 📝 License
+MIT
