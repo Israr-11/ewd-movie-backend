@@ -38,7 +38,20 @@ export const updateReview = async (event: APIGatewayEvent) => {
     const movieId = Number(event.pathParameters?.movieId);
     const reviewId = Number(event.pathParameters?.reviewId);
     const { newContent } = JSON.parse(event.body || '{}');
-    if (!movieId || !reviewId || !newContent) return { statusCode: 400, body: 'Missing fields' };
+    
+    // Get user email from Cognito claims
+    const userEmail = event.requestContext.authorizer?.claims?.email;
+    
+    // Check if review exists and belongs to user
+    const reviews = await reviewService.getReviewsByMovieId(movieId);
+    const review = reviews.find(r => r.ReviewId === reviewId);
+    if (!review) {
+        return { statusCode: 404, body: 'Review not found' };
+    }
+    
+    if (review.ReviewerId !== userEmail) {
+        return { statusCode: 403, body: 'Not authorized to update this review' };
+    }
 
     const updatedReview = await reviewService.updateReview(movieId, reviewId, newContent);
     return { statusCode: 200, body: JSON.stringify(updatedReview) };
