@@ -2,7 +2,7 @@
 
 A robust, serverless movie review management system built with AWS CDK and TypeScript, enabling users to create, retrieve, and translate movie reviews.
 
-## 🚀 Key Features
+## Key Features
 ### Movie Review Management
 - Get movie reviews with filtering by reviewer or review ID
 - Add new reviews
@@ -14,7 +14,7 @@ A robust, serverless movie review management system built with AWS CDK and TypeS
 - User-specific review management
 - Protected review updates
 
-## 🏗 Architecture
+## Architecture
 The project leverages several AWS services:
 - **AWS Lambda** - Serverless compute for review operations
 - **API Gateway** - RESTful API endpoints
@@ -22,23 +22,28 @@ The project leverages several AWS services:
 - **Amazon Translate** - Review translation capabilities
 - **Cognito** - User authentication and authorization
 
-## 📚 API Endpoints
+## AUTHENTICATION Endpoints
 ```http
-GET /movies/{movieId}/reviews              // Get all reviews for a movie
-GET /movies/{movieId}/reviews?reviewId=1   // Filter by review ID
+POST /auth/register                     // Registartion endpoint
+PUT /auth/login   // Login endpoint
+GET /auth/logout  // Logout endpoint
+```
+
+## API Endpoints
+```http
 GET /movies/{movieId}/reviews?reviewerName=email@example.com  // Filter by reviewer
 POST /movies/reviews                       // Add new review
 PUT /movies/{movieId}/reviews/{reviewId}   // Update review (authenticated)
 GET /movies/{movieId}/reviews/{reviewId}/translate?language=es  // Get translated review
 ```
 
-## 🛠 Prerequisites
+## Prerequisites
 - Node.js (v20+)
 - AWS CLI (configured)
 - AWS CDK v2
 - TypeScript knowledge
 
-## 🚦 Getting Started
+## Getting Started
 ### Clone & Install
 ```sh
 git clone <repository-url>
@@ -56,7 +61,7 @@ npm run build
 cdk deploy
 ```
 
-## 🏗 Project Structure
+## Project Structure
 ```
 ewd-movie-backend/
 ├── src/
@@ -65,13 +70,15 @@ ewd-movie-backend/
 │   ├── services/
 │   │   ├── review-service.ts       # Review business logic
 │   │   └── translate-service.ts    # Translation handling
+│   ├── models/                     # Interfaces and data models
+│   └── index.ts                     # Entry point for the backend
 ├── lib/
 │   └── stack-definition.ts         # CDK infrastructure
 └── bin/
     └── app.ts                      # CDK app entry point
 ```
 
-## 💡 Usage Examples
+## Usage Examples
 ### Get Movie Reviews
 ```http
 // Get all reviews for movie ID 123
@@ -99,10 +106,7 @@ POST /movies/reviews
 GET /movies/123/reviews/456/translate?language=es
 ```
 
-## 🔐 Security
+## Security
 - Review updates are protected with Cognito authentication
 - Users can only modify their own reviews
 - API endpoints are secured with proper authorization
-
-## 📝 License
-MIT
