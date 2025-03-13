@@ -4,6 +4,9 @@ import { Review } from '../models/review-model';
 
 
 export class ReviewService {
+    getReview(movieId: number, reviewId: number) {
+        throw new Error('Method not implemented.');
+    }
     private docClient: DynamoDBDocumentClient;
     private tableName: string;
 

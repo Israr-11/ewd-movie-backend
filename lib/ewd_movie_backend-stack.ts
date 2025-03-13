@@ -5,12 +5,17 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
 import { DbStack } from './db-stack';
+import { AuthStack, AuthStackProps } from './auth-stack';
 
 export class EwdMovieBackendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     const dbStack = new DbStack(this, 'DbStack');
+    // In the constructor
+  const authStack = new AuthStack(this, 'AuthStack', {
+  env: props?.env  // Pass environment props instead of apiUrl
+  });
 
     const apiLambda = new lambda.Function(this, 'ApiLambda', {
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -19,6 +24,8 @@ export class EwdMovieBackendStack extends cdk.Stack {
       environment: {
         REVIEWS_TABLE: dbStack.movieReviewsTable.tableName,
         TRANSLATIONS_TABLE: dbStack.translationsTable.tableName,
+        USER_POOL_ID: authStack.userPool.userPoolId,
+        USER_POOL_CLIENT_ID: authStack.userPoolClient.userPoolClientId
       },
     });
 
@@ -38,6 +45,14 @@ export class EwdMovieBackendStack extends cdk.Stack {
       restApiName: 'MovieReviewAPI',
     });
 
+    //
+
+
+
+    const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'MovieReviewAuthorizer', {
+      cognitoUserPools: [authStack.userPool]
+    });
+
     // Request Validators
     const reviewModel = new apigateway.Model(this, 'ReviewModel', {
       restApi: api,
@@ -47,12 +62,12 @@ export class EwdMovieBackendStack extends cdk.Stack {
         type: apigateway.JsonSchemaType.OBJECT,
         required: ['review', 'email'],
         properties: {
-          review: { 
+          review: {
             type: apigateway.JsonSchemaType.STRING,
             minLength: 1,
             maxLength: 1000
           },
-          email: { 
+          email: {
             type: apigateway.JsonSchemaType.STRING,
             format: 'email'
           }
@@ -72,6 +87,8 @@ export class EwdMovieBackendStack extends cdk.Stack {
 
     // POST /movies/reviews
     movieReviewsResource.addMethod('POST', getReviewsIntegration, {
+      authorizer: authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
       requestValidator: new apigateway.RequestValidator(this, 'ReviewValidator', {
         restApi: api,
         validateRequestBody: true
@@ -85,7 +102,10 @@ export class EwdMovieBackendStack extends cdk.Stack {
     const movieResource = moviesResource.addResource('{movieId}');
     const reviewsResource = movieResource.addResource('reviews');
     const reviewIdResource = reviewsResource.addResource('{reviewId}');
-    reviewIdResource.addMethod('PUT', getReviewsIntegration);
+    reviewIdResource.addMethod('PUT', getReviewsIntegration, {
+      authorizer: authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO
+    });
 
     // GET /reviews/{reviewId}/{movieId}/translation
     const directReviewsResource = api.root.addResource('reviews');
@@ -93,7 +113,7 @@ export class EwdMovieBackendStack extends cdk.Stack {
       .addResource('{reviewId}')
       .addResource('{movieId}')
       .addResource('translation');
-    
+
     translationPath.addMethod('GET', getReviewsIntegration, {
       requestValidator: new apigateway.RequestValidator(this, 'TranslationValidator', {
         restApi: api,
@@ -101,5 +121,22 @@ export class EwdMovieBackendStack extends cdk.Stack {
       })
     });
 
+
+    // Add auth endpoints
+    const authResource = api.root.addResource('auth');
+    const registerResource = authResource.addResource('register');
+    const loginResource = authResource.addResource('login');
+    const logoutResource = authResource.addResource('logout');
+
+    registerResource.addMethod('POST', getReviewsIntegration);
+    loginResource.addMethod('POST', getReviewsIntegration);
+    logoutResource.addMethod('POST', getReviewsIntegration, {
+      authorizer: authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO
+    });
+
+
     new cdk.CfnOutput(this, 'ApiEndpoint', { value: api.url });
-  }}
+  }
+
+}
