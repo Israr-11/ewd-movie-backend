@@ -98,13 +98,23 @@ ewd-movie-backend/
 
 ### Registration
 ```http
-// Update and Post review require user to register and login
 POST auth/register
+
+{
+  "email": "dummy@user.com",
+  "password": "Hello@123"
+}
 ```
 
 ### Login
 ```http
 POST auth/login
+
+{
+  "email": "dummy@user.com",
+  "password": "Hello@123"
+}
+
 ```
 
 ### Logout
@@ -114,7 +124,7 @@ POST auth/logout
 
 ### Get Movie Reviews
 ```http
-// Get reviews by reviewer email and or movie ID
+# Get reviews by reviewer email and or movie ID
 GET /movies/2/reviews?reviewerName=user@example.com
 ```
 
