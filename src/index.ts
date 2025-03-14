@@ -1,10 +1,11 @@
 import { APIGatewayEvent } from 'aws-lambda';
 import { getMovieReviews, addReview, updateReview, getTranslation } from './controllers/review-controller';
-import {signOut, signIn, signUp} from './controllers/auth-controller';
+import { signOut, signIn, signUp } from './controllers/auth-controller';
 
 export const handler = async (event: APIGatewayEvent) => {
   try {
-    // GET /movies/reviews/[movieId]
+
+    // GET /movies/reviews/{movieId}
     if (event.httpMethod === 'GET' && event.path.match(/\/movies\/reviews\/\d+$/)) {
       return await getMovieReviews(event);
     }
@@ -27,15 +28,14 @@ export const handler = async (event: APIGatewayEvent) => {
     if (event.path === '/auth/register' && event.httpMethod === 'POST') {
       return await signUp(event);
     }
-    
+
     if (event.path === '/auth/login' && event.httpMethod === 'POST') {
       return await signIn(event);
     }
-    
+
     if (event.path === '/auth/logout' && event.httpMethod === 'POST') {
       return await signOut(event);
     }
-    
 
     return { statusCode: 404, body: 'Not Found' };
   } catch (error) {

@@ -19,9 +19,9 @@ export class ReviewService {
     private async getNextMovieId(): Promise<number> {
         const command = new UpdateCommand({
             TableName: this.tableName,
-            Key: { 
+            Key: {
                 MovieId: 0,
-                ReviewId: 0 
+                ReviewId: 0
             },
             UpdateExpression: 'SET #counter = if_not_exists(#counter, :start) + :increment',
             ExpressionAttributeNames: {
@@ -33,11 +33,11 @@ export class ReviewService {
             },
             ReturnValues: 'UPDATED_NEW'
         });
-        
+
         const result = await this.docClient.send(command);
         return result.Attributes?.Counter;
     }
-    
+
 
     async getReviewsByMovieId(movieId: number): Promise<Review[]> {
         const command = new QueryCommand({
@@ -51,13 +51,13 @@ export class ReviewService {
     }
 
     async addReview(review: string, email: string): Promise<Review> {
-        
+
         const movieId = await this.getNextMovieId();
         const now = new Date();
 
         const newReview: Review = {
             MovieId: movieId,
-            ReviewId: Math.floor(now.getTime() / 1000), 
+            ReviewId: Math.floor(now.getTime() / 1000),
             ReviewerId: email,
             Content: review,
             ReviewDate: now.toISOString().split('T')[0]

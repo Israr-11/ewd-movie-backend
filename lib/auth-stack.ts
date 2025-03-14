@@ -30,7 +30,7 @@ export class AuthStack extends cdk.Stack {
         requireDigits: true,
         requireSymbols: true
       },
- 
+
     });
 
     this.userPool.addTrigger(cognito.UserPoolOperation.PRE_SIGN_UP, new lambda.Function(this, 'AutoConfirmFunction', {
@@ -43,8 +43,8 @@ export class AuthStack extends cdk.Stack {
         };
       `)
     }));
-    
-    
+
+
 
     this.userPoolClient = new cognito.UserPoolClient(this, 'MovieReviewUserPoolClient', {
       userPool: this.userPool,
@@ -68,13 +68,14 @@ export class AuthStack extends cdk.Stack {
       }
     });
 
-    new cdk.CfnOutput(this, 'UserPoolId', { 
+    new cdk.CfnOutput(this, 'UserPoolId', {
       value: this.userPool.userPoolId,
       description: 'The ID of the Cognito User Pool'
     });
-    
-    new cdk.CfnOutput(this, 'UserPoolClientId', { 
+
+    new cdk.CfnOutput(this, 'UserPoolClientId', {
       value: this.userPoolClient.userPoolClientId,
       description: 'The ID of the Cognito User Pool Client'
     });
-  }}
+  }
+}

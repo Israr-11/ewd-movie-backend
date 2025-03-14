@@ -6,14 +6,14 @@ const reviewService = new ReviewService();
 
 export const getMovieReviews = async (event: APIGatewayEvent) => {
     const movieId = Number(event.pathParameters?.movieId);
-    const reviewId = event.queryStringParameters?.reviewId ? 
-                    Number(event.queryStringParameters.reviewId) : undefined;
+    const reviewId = event.queryStringParameters?.reviewId ?
+        Number(event.queryStringParameters.reviewId) : undefined;
     const reviewerEmail = event.queryStringParameters?.reviewerName;
 
     if (!movieId) return { statusCode: 400, body: 'Movie ID is required' };
 
     const reviews = await reviewService.getReviewsByMovieId(movieId);
-    
+
     let filteredReviews = reviews;
     if (reviewId) {
         filteredReviews = reviews.filter(r => r.ReviewId === reviewId);
@@ -26,7 +26,7 @@ export const getMovieReviews = async (event: APIGatewayEvent) => {
 };
 
 export const addReview = async (event: APIGatewayEvent) => {
-    
+
     const { review, email } = JSON.parse(event.body || '{}');
     if (!review || !email) return { statusCode: 400, body: 'Missing required fields' };
 
@@ -38,17 +38,15 @@ export const updateReview = async (event: APIGatewayEvent) => {
     const movieId = Number(event.pathParameters?.movieId);
     const reviewId = Number(event.pathParameters?.reviewId);
     const { newContent } = JSON.parse(event.body || '{}');
-    
-    // Get user email from Cognito claims
+
     const userEmail = event.requestContext.authorizer?.claims?.email;
-    
-    // Check if review exists and belongs to user
+
     const reviews = await reviewService.getReviewsByMovieId(movieId);
     const review = reviews.find(r => r.ReviewId === reviewId);
     if (!review) {
         return { statusCode: 404, body: 'Review not found' };
     }
-    
+
     if (review.ReviewerId !== userEmail) {
         return { statusCode: 403, body: 'Not authorized to update this review' };
     }

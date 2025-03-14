@@ -1,9 +1,9 @@
 import { APIGatewayEvent } from 'aws-lambda';
-import { 
-  CognitoIdentityProviderClient, 
-  InitiateAuthCommand, 
+import {
+  CognitoIdentityProviderClient,
+  InitiateAuthCommand,
   SignUpCommand,
-  GlobalSignOutCommand 
+  GlobalSignOutCommand
 } from "@aws-sdk/client-cognito-identity-provider";
 
 const cognitoClient = new CognitoIdentityProviderClient({});
@@ -12,7 +12,7 @@ const clientId = process.env.USER_POOL_CLIENT_ID;
 
 export const signUp = async (event: APIGatewayEvent) => {
   const { email, password } = JSON.parse(event.body || '{}');
-  
+
   const command = new SignUpCommand({
     ClientId: clientId,
     Username: email,
@@ -56,7 +56,7 @@ export const signIn = async (event: APIGatewayEvent) => {
 
 export const signOut = async (event: APIGatewayEvent) => {
   const accessToken = event.headers.Authorization?.split(' ')[1];
-  
+
   const command = new GlobalSignOutCommand({
     AccessToken: accessToken
   });

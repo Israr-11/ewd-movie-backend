@@ -45,7 +45,6 @@ export class TranslateService {
             throw new Error('Target language is required');
         }
 
-        // Check translation cache first
         const cachedTranslation = await this.getCachedTranslation(reviewId, movieId, targetLanguage);
         if (cachedTranslation) {
             return {
@@ -56,11 +55,9 @@ export class TranslateService {
             };
         }
 
-        // Get original review if no cached translation
         const review = await this.getReview(movieId, reviewId);
         if (!review) return null;
 
-        // Translate and cache
         const translated = await this.translateText(review.Content, targetLanguage);
         await this.cacheTranslation(reviewId, movieId, targetLanguage, translated);
 

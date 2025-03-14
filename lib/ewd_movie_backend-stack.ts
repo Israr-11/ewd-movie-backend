@@ -12,10 +12,9 @@ export class EwdMovieBackendStack extends cdk.Stack {
     super(scope, id, props);
 
     const dbStack = new DbStack(this, 'DbStack');
-    // In the constructor
-  const authStack = new AuthStack(this, 'AuthStack', {
-  env: props?.env  // Pass environment props instead of apiUrl
-  });
+    const authStack = new AuthStack(this, 'AuthStack', {
+      env: props?.env
+    });
 
     const apiLambda = new lambda.Function(this, 'ApiLambda', {
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -29,7 +28,6 @@ export class EwdMovieBackendStack extends cdk.Stack {
       },
     });
 
-    // Grant Lambda Permissions
     dbStack.movieReviewsTable.grantReadWriteData(apiLambda);
     dbStack.translationsTable.grantReadWriteData(apiLambda);
     apiLambda.addToRolePolicy(new iam.PolicyStatement({
@@ -53,7 +51,6 @@ export class EwdMovieBackendStack extends cdk.Stack {
       cognitoUserPools: [authStack.userPool]
     });
 
-    // Request Validators
     const reviewModel = new apigateway.Model(this, 'ReviewModel', {
       restApi: api,
       contentType: 'application/json',
@@ -77,7 +74,6 @@ export class EwdMovieBackendStack extends cdk.Stack {
 
     const getReviewsIntegration = new apigateway.LambdaIntegration(apiLambda);
 
-    // API Resources and Methods
     const moviesResource = api.root.addResource('movies');
     const movieReviewsResource = moviesResource.addResource('reviews');
     const movieIdResource = movieReviewsResource.addResource('{movieId}');

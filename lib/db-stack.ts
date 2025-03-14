@@ -1,4 +1,3 @@
-// /lib/db-stack.ts
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
@@ -24,7 +23,7 @@ export class DbStack extends cdk.Stack {
       sortKey: { name: 'Language', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     })
-    
+
 
     new cdk.CfnOutput(this, 'TableName', { value: this.movieReviewsTable.tableName });
   }
