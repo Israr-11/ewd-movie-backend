@@ -44,8 +44,6 @@ export class AuthStack extends cdk.Stack {
       `)
     }));
 
-
-
     this.userPoolClient = new cognito.UserPoolClient(this, 'MovieReviewUserPoolClient', {
       userPool: this.userPool,
       authFlows: {
@@ -65,8 +63,17 @@ export class AuthStack extends cdk.Stack {
           cognito.OAuthScope.OPENID,
           cognito.OAuthScope.PROFILE
         ]
-      }
+      },
+      supportedIdentityProviders: [
+        cognito.UserPoolClientIdentityProvider.COGNITO
+      ],
+      preventUserExistenceErrors: true,
+      accessTokenValidity: cdk.Duration.hours(1),
+      idTokenValidity: cdk.Duration.hours(1),
+      refreshTokenValidity: cdk.Duration.days(30),
+      enableTokenRevocation: true  
     });
+    
 
     new cdk.CfnOutput(this, 'UserPoolId', {
       value: this.userPool.userPoolId,

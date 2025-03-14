@@ -34,7 +34,10 @@ export class EwdMovieBackendStack extends cdk.Stack {
       effect: iam.Effect.ALLOW,
       actions: [
         'translate:TranslateText',
-        'comprehend:DetectDominantLanguage'
+        'comprehend:DetectDominantLanguage',
+        'cognito-idp:InitiateAuth',
+        'cognito-idp:SignUp',
+        'cognito-idp:GlobalSignOut' 
       ],
       resources: ['*']
     }));
@@ -42,9 +45,6 @@ export class EwdMovieBackendStack extends cdk.Stack {
     const api = new apigateway.RestApi(this, 'MovieReviewAPI', {
       restApiName: 'MovieReviewAPI',
     });
-
-    //
-
 
 
     const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'MovieReviewAuthorizer', {
@@ -118,7 +118,7 @@ export class EwdMovieBackendStack extends cdk.Stack {
     });
 
 
-    // Add auth endpoints
+    // Added auth endpoints
     const authResource = api.root.addResource('auth');
     const registerResource = authResource.addResource('register');
     const loginResource = authResource.addResource('login');
@@ -126,11 +126,7 @@ export class EwdMovieBackendStack extends cdk.Stack {
 
     registerResource.addMethod('POST', getReviewsIntegration);
     loginResource.addMethod('POST', getReviewsIntegration);
-    logoutResource.addMethod('POST', getReviewsIntegration, {
-      authorizer: authorizer,
-      authorizationType: apigateway.AuthorizationType.COGNITO
-    });
-
+    logoutResource.addMethod('POST', getReviewsIntegration);
 
     new cdk.CfnOutput(this, 'ApiEndpoint', { value: api.url });
   }
