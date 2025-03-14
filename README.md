@@ -93,7 +93,7 @@ ewd-movie-backend/
 ├── README.md                           # Project documentation
 ├── tsconfig.json                       # TypeScript configuration
 
-
+```
 ## Usage Examples
 
 ### Registration
