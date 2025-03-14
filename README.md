@@ -1,11 +1,11 @@
 # EWD Movie Backend - AWS Serverless Movie Review API
 
-A robust, serverless movie review management system built with AWS CDK and TypeScript, enabling users to create, retrieve, and translate movie reviews.
+A serverless movie backend API built with AWS CDK and TypeScript, enabling users to register, login, create, update, retrieve, and translate movie reviews.
 
 ## Key Features
 ### Movie Review Management
-- Get movie reviews with filtering by reviewer or review ID
-- Add new reviews
+- Get movie reviews by filtering by movie ID and reviewer's email.
+- Add new reviews with authorization
 - Update existing reviews with authorization
 - Translate reviews to different languages
 
@@ -18,21 +18,21 @@ A robust, serverless movie review management system built with AWS CDK and TypeS
 The project leverages several AWS services:
 - **AWS Lambda** - Serverless compute for review operations
 - **API Gateway** - RESTful API endpoints
-- **DynamoDB** - Review data persistence
+- **DynamoDB** - Review and translation data persistence
 - **Amazon Translate** - Review translation capabilities
 - **Cognito** - User authentication and authorization
 
-## AUTHENTICATION Endpoints
+## Authentication Endpoints
 ```http
-POST /auth/register  //Registration endpoint
-PUT /auth/login     // Login endpoint
-GET /auth/logout   // Logout endpoint
+POST /auth/register   // Registration endpoint
+POST /auth/login     // Login endpoint
+POST /auth/logout   // Logout endpoint
 ```
 
-## API Endpoints
+## Movie review Endpoints
 ```http
-GET /movies/{movieId}/reviews?reviewerName=email@example.com  // Filter by reviewer email and movie id
-POST /movies/reviews                       // Add new review
+GET /movies/{movieId}/reviews?reviewerName=email@example.com  // Filter by reviewer email and movie ID
+POST /movies/reviews                       // Add new review (authenticated)
 PUT /movies/{movieId}/reviews/{reviewId}   // Update review (authenticated)
 GET /movies/{movieId}/reviews/{reviewId}/translate?language=es  // Get translated review
 ```
@@ -66,24 +66,57 @@ cdk deploy
 ewd-movie-backend/
 ├── src/
 │   ├── controllers/
-│   │   └── review-controller.ts    # Review management logic
+│   │   ├── auth-controller.ts         # Handles authentication
+│   │   └── review-controller.ts       # Review management logic
+│   ├── models/                        # Interfaces and data model
+│   │   ├── review-model.ts
+│   │   
 │   ├── services/
-│   │   ├── review-service.ts       # Review business logic
-│   │   └── translate-service.ts    # Translation handling
-│   ├── models/                     # Interfaces and data models
-│   └── index.ts                     # Entry point for the backend
+│   │   ├── review-service.ts          # Review business logic
+│   │   ├── translate-service.ts       # Translation handling
+│   │   
+│   ├── routes/                         # Route definitions (if applicable)
+│   └── index.ts                        # Entry point for the backend
 ├── lib/
-│   └── stack-definition.ts         # CDK infrastructure
-└── bin/
-    └── app.ts                      # CDK app entry point
+│   ├── auth-stack.ts                  # Authentication infrastructure
+│   ├── db-stack.ts                    # Database infrastructure
+│   └── ewd_movie_backend-stack.ts     # Main CDK stack
+├── bin/
+│   └── ewd_movie_backend.ts           # CDK app entry point
+├── .gitignore                         # Ignored files
+├── .npmignore                         # Ignored npm files
+├── cdk.context.json                   # AWS CDK configuration
+├── cdk.json                           # CDK deployment configuration
+├── jest.config.js                     # Jest testing configuration
+├── LICENSE                            # License file
+├── package-lock.json                   # Lock file for dependencies
+├── package.json                        # Dependencies and scripts
+├── README.md                           # Project documentation
+├── tsconfig.json                       # TypeScript configuration
 ```
 
 ## Usage Examples
 
+### Registration
+```http
+// Update and Post review require user to register and login
+POST auth/register
+```
+
+### Login
+```http
+POST auth/login
+```
+
+### Logout
+```http
+POST auth/logout
+```
+
 ### Get Movie Reviews
 ```http
-// Get reviews by reviewer
-GET /movies/123/reviews?reviewerName=user@example.com
+// Get reviews by reviewer email and or movie ID
+GET /movies/2/reviews?reviewerName=user@example.com
 ```
 
 ### Add Review
@@ -95,13 +128,19 @@ POST /movies/reviews
 }
 ```
 
-### Translate Review
+### Update Review
 ```http
-// Translate review 456 for movie 123 to Spanish
-GET /movies/123/reviews/456/translate?language=es
+PUT movies/2/reviews/1741885172
+{
+  "newContent": " movie was not good"
+}
 ```
 
+### Translate Review
+```http
+GET reviews/1741885172/2/translation?language=es
+```
 ## Security
 - Review updates are protected with Cognito authentication
-- Users can only modify their own reviews
+- Users can only modify their reviews
 - API endpoints are secured with proper authorization
