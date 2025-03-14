@@ -140,8 +140,8 @@ POST /movies/reviews
 
 ### Update Review
 ```http
-
 PUT movies/2/reviews/1741885172
+
 {
   "newContent": " movie was not good"
 }
