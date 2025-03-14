@@ -75,7 +75,6 @@ ewd-movie-backend/
 │   │   ├── review-service.ts          # Review business logic
 │   │   ├── translate-service.ts       # Translation handling
 │   │   
-│   ├── routes/                         # Route definitions (if applicable)
 │   └── index.ts                        # Entry point for the backend
 ├── lib/
 │   ├── auth-stack.ts                  # Authentication infrastructure
