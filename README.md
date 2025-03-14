@@ -124,12 +124,14 @@ POST auth/logout
 ### Get Movie Reviews
 ```http
 # Get reviews by reviewer email and or movie ID
+
 GET /movies/2/reviews?reviewerName=user@example.com
 ```
 
 ### Add Review
 ```http
 POST /movies/reviews
+
 {
   "review": "Great movie!",
   "email": "reviewer@example.com"
@@ -138,6 +140,7 @@ POST /movies/reviews
 
 ### Update Review
 ```http
+
 PUT movies/2/reviews/1741885172
 {
   "newContent": " movie was not good"
