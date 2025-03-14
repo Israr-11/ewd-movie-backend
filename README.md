@@ -92,7 +92,7 @@ ewd-movie-backend/
 ├── package.json                        # Dependencies and scripts
 ├── README.md                           # Project documentation
 ├── tsconfig.json                       # TypeScript configuration
-```
+
 
 ## Usage Examples
 
@@ -114,7 +114,6 @@ POST auth/login
   "email": "dummy@user.com",
   "password": "Hello@123"
 }
-
 ```
 
 ### Logout
@@ -149,6 +148,8 @@ PUT movies/2/reviews/1741885172
 ```http
 GET reviews/1741885172/2/translation?language=es
 ```
+
+
 ## Security
 - Review updates are protected with Cognito authentication
 - Users can only modify their reviews
