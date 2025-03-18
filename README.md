@@ -120,7 +120,11 @@ export class AuthStack extends cdk.Stack {
   }
 }
 ```
+In the **EwdMovieBackendStack**, the **AuthStack** is instantiated, and its resources are used to:
 
+- Configure the Lambda function environment variables
+- Set up a Cognito authorizer for protected API endpoints
+- Secure specific routes that require authenticatio
 ---
 
 ### **Restricted Review Updates** 
