@@ -41,10 +41,10 @@ The project leverages several AWS services:
 - `POST /auth/logout` - User logout.
 
 ### **Movie Review Endpoints**
-- `GET /movies/{movieId}/reviews?reviewerName=email@example.com` - Get reviews filtered by reviewer email and movie ID.
+- `GET /movies/reviews/{movieId}?reviewerName=email@example.com` - Get reviews filtered by reviewer email and movie ID.
 - `POST /movies/reviews` - Add new review (authenticated).
 - `PUT /movies/{movieId}/reviews/{reviewId}` - Update review (authenticated).
-- `GET /movies/{movieId}/reviews/{reviewId}/translate?language=es` - Get translated review.
+- `GET /reviews/{reviewId}/{movieId}/translation?language=es` - Get translated review.
 
 ---
 
