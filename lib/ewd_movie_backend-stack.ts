@@ -72,6 +72,27 @@ export class EwdMovieBackendStack extends cdk.Stack {
       }
     });
 
+
+    const authModel = new apigateway.Model(this, 'AuthModel', {
+      restApi: api,
+      contentType: 'application/json',
+      modelName: 'AuthModel',
+      schema: {
+        type: apigateway.JsonSchemaType.OBJECT,
+        required: ['email', 'password'],
+        properties: {
+          email: {
+            type: apigateway.JsonSchemaType.STRING,
+            format: 'email'
+          },
+          password: {
+            type: apigateway.JsonSchemaType.STRING,
+            minLength: 8  
+          }
+        }
+      }
+    });
+
     const getReviewsIntegration = new apigateway.LambdaIntegration(apiLambda);
 
     const moviesResource = api.root.addResource('movies');
@@ -118,14 +139,32 @@ export class EwdMovieBackendStack extends cdk.Stack {
     });
 
 
-    // Added auth endpoints
+    // Auth endpoints
     const authResource = api.root.addResource('auth');
     const registerResource = authResource.addResource('register');
     const loginResource = authResource.addResource('login');
     const logoutResource = authResource.addResource('logout');
 
-    registerResource.addMethod('POST', getReviewsIntegration);
-    loginResource.addMethod('POST', getReviewsIntegration);
+    registerResource.addMethod('POST', getReviewsIntegration, {
+      requestValidator: new apigateway.RequestValidator(this, 'RegisterValidator', {
+        restApi: api,
+        validateRequestBody: true
+      }),
+      requestModels: {
+        'application/json': authModel
+      }
+    });
+    
+    loginResource.addMethod('POST', getReviewsIntegration, {
+      requestValidator: new apigateway.RequestValidator(this, 'LoginValidator', {
+        restApi: api,
+        validateRequestBody: true
+      }),
+      requestModels: {
+        'application/json': authModel
+      }
+    });
+
     logoutResource.addMethod('POST', getReviewsIntegration);
 
     new cdk.CfnOutput(this, 'ApiEndpoint', { value: api.url });
