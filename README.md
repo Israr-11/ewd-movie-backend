@@ -1,8 +1,6 @@
 ---
-title: Enterprise Web Development Module - Serverless REST Assignment
+## Enterprise Web Development module - Serverless REST Assignment.
 ---
-
-## Enterprise Web Development Module - Serverless REST Assignment
 
 **Name:** Israr Ahmed
 
@@ -52,7 +50,7 @@ The project leverages several AWS services:
 
 ## Features
 
-### **Translation Persistence** (if completed)
+### **Translation Persistence**
 
 I have implemented translation persistence, which caches translations to avoid repeated AWS translation requests. Translations are stored in the database alongside movie and review IDs. This way, future translation requests are served directly from the database instead of making repeated API calls to AWS.
 
@@ -60,7 +58,7 @@ I have implemented translation persistence, which caches translations to avoid r
 
 ![image](https://github.com/user-attachments/assets/b77fb3ca-8ee7-45e5-a7d3-b71b3b779e67)
 
-### **Custom L2 Construct** (if completed)
+### **Custom L2 Construct**
 
 I implemented a **Custom L2 Construct** called `AuthStack`, which provisions and configures AWS Cognito for user authentication. This construct creates a Cognito User Pool with email sign-in, auto-verification, and a pre-signup Lambda trigger for auto-confirmation. It also sets up a User Pool Client with authentication flows.
 
@@ -125,13 +123,13 @@ export class AuthStack extends cdk.Stack {
 
 ---
 
-### **Restricted Review Updates** (if completed)
+### **Restricted Review Updates** 
 
-I implemented authorization in the review update route to ensure only the review creator with a valid token can update it. The token is checked in the request headers and verified against the review creator's email. If they match, the review is updated; otherwise, an error message is returned.
+I implemented authorization in the review update route to ensure only the review creator with a valid token can update it. The token is checked in the request headers and verified against the review creator's email. If they match, the review is updated otherwise, an error message is returned.
 
 ---
 
-### **API Gateway Validators** (if completed)
+### **API Gateway Validators**
 
 #### **Implemented API Gateway validators in key endpoints:**
 
