@@ -52,7 +52,7 @@ The project leverages several AWS services:
 
 ### **Translation Persistence**
 
-I have implemented translation persistence, which caches translations to avoid repeated AWS translation requests. Translations are stored in the database alongside movie and review IDs. This way, future translation requests are served directly from the database instead of making repeated API calls to AWS.
+I have implemented translation persistence, which caches translations to avoid repeated AWS translation requests. Translations are stored in the database in a new Table named ReviewTranslations containing the movie and review IDs of the Review Table. This way, future translation requests are served directly from the database instead of making repeated API calls to AWS.
 
 **Example of stored translation in the database:**
 
