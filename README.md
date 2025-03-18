@@ -58,7 +58,7 @@ I have implemented translation persistence, which caches translations to avoid r
 
 **Example of stored translation in the database:**
 
-![Translation Stored in Database](translation_stored_in_database.png)
+![image](https://github.com/user-attachments/assets/b77fb3ca-8ee7-45e5-a7d3-b71b3b779e67)
 
 ### **Custom L2 Construct** (if completed)
 
