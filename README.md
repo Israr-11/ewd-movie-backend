@@ -2,7 +2,7 @@
 
 __Name:__ Israr Ahmed
 
-__Demo:__ [... ](https://drive.google.com/file/d/1lQp4gf_Zq_mOhvR0ZU3Xdr6PiuGAzSlW/view?usp=sharing)
+__Demo:__ https://drive.google.com/file/d/1lQp4gf_Zq_mOhvR0ZU3Xdr6PiuGAzSlW/view?usp=sharing
 
 ### Overview.
 
