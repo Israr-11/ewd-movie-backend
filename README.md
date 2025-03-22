@@ -6,8 +6,6 @@
 
 **Demo:** [View Demo](https://drive.google.com/file/d/1zBtpBMvAtRDfT8diadD1rCjNLs9FUCYt/view?usp=sharing)
 
-**Base URL:** (https://o36gygbpvf.execute-api.us-east-1.amazonaws.com/prod/)
-
 ---
 
 ## Overview
