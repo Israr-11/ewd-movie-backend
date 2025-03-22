@@ -50,7 +50,7 @@ export class ReviewService {
         return result.Items as Review[] || [];
     }
 
-    async addReview(review: string, email: string): Promise<Review> {
+    async addReview(review: string, userEmail: string): Promise<Review> {
 
         const movieId = await this.getNextMovieId();
         const now = new Date();
@@ -58,7 +58,7 @@ export class ReviewService {
         const newReview: Review = {
             MovieId: movieId,
             ReviewId: Math.floor(now.getTime() / 1000),
-            ReviewerId: email,
+            ReviewerId: userEmail,
             Content: review,
             ReviewDate: now.toISOString().split('T')[0]
         };

@@ -26,11 +26,12 @@ export const getMovieReviews = async (event: APIGatewayEvent) => {
 };
 
 export const addReview = async (event: APIGatewayEvent) => {
+    const userEmail = event.requestContext.authorizer?.claims?.email;
+    if (!userEmail) return { statusCode: 401, body: 'Unauthorized' };
+    const { review } = JSON.parse(event.body || '{}');
+    if (!review) return { statusCode: 400, body: 'Missing required fields' };
 
-    const { review, email } = JSON.parse(event.body || '{}');
-    if (!review || !email) return { statusCode: 400, body: 'Missing required fields' };
-
-    const newReview = await reviewService.addReview(review, email);
+    const newReview = await reviewService.addReview(review, userEmail);
     return { statusCode: 201, body: JSON.stringify(newReview) };
 };
 

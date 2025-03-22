@@ -60,7 +60,7 @@ export const signIn = async (event: APIGatewayEvent) => {
 export const signOut = async (event: APIGatewayEvent) => {
   try {
     const authHeader = event.headers.Authorization || event.headers.authorization;
-    
+
     if (!authHeader) {
       return {
         statusCode: 401,
@@ -69,7 +69,7 @@ export const signOut = async (event: APIGatewayEvent) => {
     }
 
     const accessToken = authHeader.split(' ')[1];
-    
+
     if (!accessToken) {
       return {
         statusCode: 401,
@@ -88,12 +88,12 @@ export const signOut = async (event: APIGatewayEvent) => {
     };
   } catch (error) {
     console.error('SignOut error:', error);
-    
-    if (error && typeof error === 'object' && '__type' in error && 
-        error.__type === 'NotAuthorizedException') {
+
+    if (error && typeof error === 'object' && '__type' in error &&
+      error.__type === 'NotAuthorizedException') {
       return {
         statusCode: 401,
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           message: 'Invalid or expired token'
         })
       };
@@ -101,7 +101,7 @@ export const signOut = async (event: APIGatewayEvent) => {
 
     return {
       statusCode: 500,
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         message: 'An error occurred during sign out',
         error
       })

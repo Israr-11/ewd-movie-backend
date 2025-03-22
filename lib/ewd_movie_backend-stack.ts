@@ -37,7 +37,7 @@ export class EwdMovieBackendStack extends cdk.Stack {
         'comprehend:DetectDominantLanguage',
         'cognito-idp:InitiateAuth',
         'cognito-idp:SignUp',
-        'cognito-idp:GlobalSignOut' 
+        'cognito-idp:GlobalSignOut'
       ],
       resources: ['*']
     }));
@@ -57,16 +57,12 @@ export class EwdMovieBackendStack extends cdk.Stack {
       modelName: 'ReviewModel',
       schema: {
         type: apigateway.JsonSchemaType.OBJECT,
-        required: ['review', 'email'],
+        required: ['review'],
         properties: {
           review: {
             type: apigateway.JsonSchemaType.STRING,
             minLength: 1,
             maxLength: 1000
-          },
-          email: {
-            type: apigateway.JsonSchemaType.STRING,
-            format: 'email'
           }
         }
       }
@@ -87,7 +83,7 @@ export class EwdMovieBackendStack extends cdk.Stack {
           },
           password: {
             type: apigateway.JsonSchemaType.STRING,
-            minLength: 8  
+            minLength: 8
           }
         }
       }
@@ -154,7 +150,7 @@ export class EwdMovieBackendStack extends cdk.Stack {
         'application/json': authModel
       }
     });
-    
+
     loginResource.addMethod('POST', getReviewsIntegration, {
       requestValidator: new apigateway.RequestValidator(this, 'LoginValidator', {
         restApi: api,
