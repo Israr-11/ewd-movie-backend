@@ -62,10 +62,16 @@ export class DbStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL
     });
 
-    // Add this to your DbStack class
     this.uploadsBucket = new s3.Bucket(this, 'UploadsBucket', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
+      publicReadAccess: true,  // Make objects publicly readable
+      blockPublicAccess: new s3.BlockPublicAccess({
+        blockPublicAcls: false,
+        blockPublicPolicy: false,
+        ignorePublicAcls: false,
+        restrictPublicBuckets: false
+      }),
       cors: [
         {
           allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.PUT, s3.HttpMethods.POST],
@@ -75,6 +81,7 @@ export class DbStack extends cdk.Stack {
         }
       ]
     });
+    
 
 
     new cdk.CfnOutput(this, 'TableName', { value: this.movieReviewsTable.tableName });

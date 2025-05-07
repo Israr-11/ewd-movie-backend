@@ -98,11 +98,12 @@ export class FantasyMovieService {
         const command = new UpdateCommand({
             TableName: this.tableName,
             Key: { Id: id },
-            UpdateExpression: 'SET Cast = :cast',
+            UpdateExpression: 'SET #castAttr = :cast',
+            ExpressionAttributeNames: { '#castAttr': 'Cast' },
             ExpressionAttributeValues: { ':cast': updatedCast },
             ReturnValues: 'ALL_NEW'
         });
-
+        
         const result = await this.docClient.send(command);
         return result.Attributes as FantasyMovie;
     }

@@ -39,11 +39,13 @@ export const handler = async (event: APIGatewayEvent) => {
 
     let response;
 
-    // GET /movies/reviews/{movieId}
-    if (event.httpMethod === 'GET' && event.path.match(/\/movies\/reviews\/\d+$/)) {
+    // GET /movies/reviews (get all reviews) or GET /movies/reviews/{movieId} (get reviews for specific movie)
+    if (event.httpMethod === 'GET' &&
+      (event.path === '/movies/reviews' || event.path.match(/\/movies\/reviews\/\d+$/))) {
       response = await getMovieReviews(event);
       return addCorsHeaders(response);
     }
+
 
     // POST /movies/reviews
     if (event.httpMethod === 'POST' && event.path === '/movies/reviews') {

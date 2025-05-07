@@ -4,7 +4,6 @@ import {
   InitiateAuthCommand,
   SignUpCommand,
   GlobalSignOutCommand,
-
 } from "@aws-sdk/client-cognito-identity-provider";
 
 const cognitoClient = new CognitoIdentityProviderClient({});
@@ -25,6 +24,7 @@ export const signUp = async (event: APIGatewayEvent) => {
     await cognitoClient.send(command);
     return { statusCode: 200, body: JSON.stringify({ message: 'User registered successfully' }) };
   } catch (error) {
+    console.error('SignUp error:', error);
     return { statusCode: 400, body: JSON.stringify({ error }) };
   }
 };
@@ -32,6 +32,7 @@ export const signUp = async (event: APIGatewayEvent) => {
 export const signIn = async (event: APIGatewayEvent) => {
   const { email, password } = JSON.parse(event.body || '{}');
 
+  // Make sure we're using the correct auth flow that's enabled in the user pool client
   const command = new InitiateAuthCommand({
     AuthFlow: 'USER_PASSWORD_AUTH',
     ClientId: clientId,
@@ -53,6 +54,7 @@ export const signIn = async (event: APIGatewayEvent) => {
       })
     };
   } catch (error) {
+    console.error('SignIn error:', error);
     return { statusCode: 401, body: JSON.stringify({ error }) };
   }
 };

@@ -1,7 +1,5 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { v4 as uuidv4 } from 'uuid';
 
 export class UploadService {
   private s3Client: S3Client;
@@ -20,8 +18,9 @@ export class UploadService {
     // Extract file extension from MIME type
     const extension = fileType.split('/')[1] || 'jpg';
     
-    // Generate a unique key for the file
-    const key = `${folder}/${uuidv4()}.${extension}`;
+    // Generate a unique key for the file using timestamp and random number instead of uuid
+    const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+    const key = `${folder}/${uniqueId}.${extension}`;
     
     // Create the command for putting an object in S3
     const command = new PutObjectCommand({

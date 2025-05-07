@@ -1,19 +1,42 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, QueryCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { Review } from '../models/review-model';
 
 
 export class ReviewService {
-    getReview(movieId: number, reviewId: number) {
-        throw new Error('Method not implemented.');
-    }
     private docClient: DynamoDBDocumentClient;
+    private dbClient: DynamoDBClient;
     private tableName: string;
 
     constructor() {
-        const client = new DynamoDBClient({});
-        this.docClient = DynamoDBDocumentClient.from(client);
-        this.tableName = process.env.TABLE_NAME || 'MovieReviews';
+        this.dbClient = new DynamoDBClient({});
+        // Configure the document client with proper unmarshalling options
+        this.docClient = DynamoDBDocumentClient.from(this.dbClient, {
+            marshallOptions: {
+                convertEmptyValues: true,
+                removeUndefinedValues: true,
+                convertClassInstanceToMap: true
+            },
+            unmarshallOptions: {
+                wrapNumbers: false
+            }
+        });
+        this.tableName = process.env.REVIEWS_TABLE || 'MovieReviews';
+    }
+
+    async getReview(movieId: number, reviewId: number): Promise<Review | null> {
+        const command = new QueryCommand({
+            TableName: this.tableName,
+            KeyConditionExpression: 'MovieId = :movieId AND ReviewId = :reviewId',
+            ExpressionAttributeValues: { 
+                ':movieId': movieId,
+                ':reviewId': reviewId
+            }
+        });
+
+        const result = await this.docClient.send(command);
+        const items = result.Items as Review[];
+        return items && items.length > 0 ? items[0] : null;
     }
 
     private async getNextId(): Promise<number> {
@@ -38,6 +61,37 @@ export class ReviewService {
         return result.Attributes?.Counter;
     }
 
+    
+    async getAllReviews(): Promise<Review[]> {
+        try {
+            // Use the base ScanCommand to get raw DynamoDB format
+            const command = new ScanCommand({
+                TableName: this.tableName
+            });
+        
+            const result = await this.dbClient.send(command);
+            
+            // Manually convert the DynamoDB format to Review objects
+            if (result.Items && result.Items.length > 0) {
+                return result.Items.map(item => ({
+                    MovieId: Number(item.MovieId?.N || 0),
+                    ReviewId: Number(item.ReviewId?.N || 0),
+                    Content: item.Content?.S || '', // Provide default empty string
+                    ReviewDate: item.ReviewDate?.S || new Date().toISOString().split('T')[0], // Default to today
+                    Rating: Number(item.Rating?.N || 0),
+                    UserId: item.UserId?.S || '', // Provide default empty string
+                    ReviewerEmail: item.ReviewerEmail?.S || '' // Provide default empty string
+                }));
+            }
+            
+            return [];
+        } catch (error) {
+            console.error('Error in getAllReviews:', error);
+            return [];
+        }
+    }
+    
+    
 
     async getReviewsByMovieId(movieId: number): Promise<Review[]> {
         const command = new QueryCommand({
@@ -50,17 +104,14 @@ export class ReviewService {
         return result.Items as Review[] || [];
     }
 
-    async addReview(review: string, userEmail: string, userId:string, rating:number, movieId:number): Promise<Review> {
-
-        //const id = await this.getNextId();
+    async addReview(review: string, userEmail: string, userId: string, rating: number, movieId: number): Promise<Review> {
         const now = new Date();
 
         const newReview: Review = {
-            // Id:id,
             MovieId: movieId,
             ReviewId: Math.floor(now.getTime() / 1000),
             ReviewerEmail: userEmail,
-            UserId:userId,
+            UserId: userId,
             Rating: rating,
             Content: review,
             ReviewDate: now.toISOString().split('T')[0]

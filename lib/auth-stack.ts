@@ -3,7 +3,6 @@ import { Construct } from 'constructs';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 
-
 export interface AuthStackProps extends cdk.StackProps {
   env?: cdk.Environment;
 }
@@ -30,7 +29,6 @@ export class AuthStack extends cdk.Stack {
         requireDigits: true,
         requireSymbols: true
       },
-
     });
 
     this.userPool.addTrigger(cognito.UserPoolOperation.PRE_SIGN_UP, new lambda.Function(this, 'AutoConfirmFunction', {
@@ -39,6 +37,7 @@ export class AuthStack extends cdk.Stack {
       code: lambda.Code.fromInline(`
         exports.handler = async (event) => {
           event.response.autoConfirmUser = true;
+          event.response.autoVerifyEmail = true;
           return event;
         };
       `)
@@ -46,9 +45,10 @@ export class AuthStack extends cdk.Stack {
 
     this.userPoolClient = new cognito.UserPoolClient(this, 'MovieReviewUserPoolClient', {
       userPool: this.userPool,
+      // Enable all auth flows, especially userPassword which is needed for USER_PASSWORD_AUTH
       authFlows: {
         adminUserPassword: true,
-        userPassword: true,
+        userPassword: true,  // This is critical for USER_PASSWORD_AUTH
         userSrp: true,
         custom: true
       },
@@ -73,7 +73,6 @@ export class AuthStack extends cdk.Stack {
       refreshTokenValidity: cdk.Duration.days(30),
       enableTokenRevocation: true
     });
-
 
     new cdk.CfnOutput(this, 'UserPoolId', {
       value: this.userPool.userPoolId,

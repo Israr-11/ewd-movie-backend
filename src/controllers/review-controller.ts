@@ -5,29 +5,20 @@ import { TranslateService } from '../services/translate-service';
 const reviewService = new ReviewService();
 
 export const getMovieReviews = async (event: APIGatewayEvent) => {
-    const movieId = Number(event.pathParameters?.movieId);
-    const reviewId = event.queryStringParameters?.reviewId ?
-        Number(event.queryStringParameters.reviewId) : undefined;
-    const reviewerEmail = event.queryStringParameters?.reviewerName;
-    const userId = event.queryStringParameters?.sub;
-
-    if (!movieId) return { statusCode: 400, body: 'Movie ID is required' };
-
+    // Check if movieId is provided in the path
+    const movieId = event.pathParameters?.movieId ? Number(event.pathParameters.movieId) : undefined;
+    
+    // If no movieId is provided, return all reviews
+    if (!movieId) {
+        const allReviews = await reviewService.getAllReviews();
+        return { statusCode: 200, body: JSON.stringify(allReviews) };
+    }
+    
+    // Otherwise, get reviews for the specific movieId
     const reviews = await reviewService.getReviewsByMovieId(movieId);
-
-    let filteredReviews = reviews;
-    if (reviewId) {
-        filteredReviews = reviews.filter(r => r.ReviewId === reviewId);
-    }
-    if (reviewerEmail) {
-        filteredReviews = reviews.filter(r => r.ReviewerEmail === reviewerEmail);
-    }
-    if (userId) {
-        filteredReviews = reviews.filter(r => r.UserId === userId);
-    }
-
-    return { statusCode: 200, body: JSON.stringify(filteredReviews) };
+    return { statusCode: 200, body: JSON.stringify(reviews) };
 };
+
 
 export const addReview = async (event: APIGatewayEvent) => {
     const userEmail = event.requestContext.authorizer?.claims?.email;
@@ -36,7 +27,7 @@ export const addReview = async (event: APIGatewayEvent) => {
     const { review,  movieId, rating} = JSON.parse(event.body || '{}');
     if (!review) return { statusCode: 400, body: 'Missing required fields' };
 
-    const newReview = await reviewService.addReview(review, userEmail, userId, movieId, rating);
+    const newReview = await reviewService.addReview(review, userEmail, userId, rating, movieId);
     return { statusCode: 201, body: JSON.stringify(newReview) };
 };
 
