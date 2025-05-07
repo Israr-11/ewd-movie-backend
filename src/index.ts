@@ -4,6 +4,8 @@ import { signOut, signIn, signUp } from './controllers/auth-controller';
 import { addFavorite, removeFavorite, getUserFavorites, reorderFavorites } from './controllers/favorite-controller';
 import { createFantasyMovie, getUserFantasyMovies, deleteFantasyMovie, addCastMember } from './controllers/fantasy-movie-controller';
 import { getPresignedUrl } from './controllers/upload-controller';
+import { createPlaylist, getUserPlaylists, deletePlaylist, addMovieToPlaylist, removeMovieFromPlaylist } from './controllers/playlist-controller';
+
 
 // CORS headers to add to all responses
 const corsHeaders = {
@@ -121,6 +123,34 @@ export const handler = async (event: APIGatewayEvent) => {
 
     if (event.path === '/api/uploads/presigned-url' && event.httpMethod === 'POST') {
       response = await getPresignedUrl(event);
+      return addCorsHeaders(response);
+    }
+
+    // Playlist endpoints
+    // Add these handlers to your existing handler function
+    // Playlist endpoints
+    if (event.path === '/api/playlists' && event.httpMethod === 'POST') {
+      response = await createPlaylist(event);
+      return addCorsHeaders(response);
+    }
+
+    if (event.path === '/api/playlists' && event.httpMethod === 'GET') {
+      response = await getUserPlaylists(event);
+      return addCorsHeaders(response);
+    }
+
+    if (event.path.match(/\/api\/playlists\/\d+$/) && event.httpMethod === 'DELETE') {
+      response = await deletePlaylist(event);
+      return addCorsHeaders(response);
+    }
+
+    if (event.path.match(/\/api\/playlists\/\d+\/movies$/) && event.httpMethod === 'POST') {
+      response = await addMovieToPlaylist(event);
+      return addCorsHeaders(response);
+    }
+
+    if (event.path.match(/\/api\/playlists\/\d+\/movies\/\d+$/) && event.httpMethod === 'DELETE') {
+      response = await removeMovieFromPlaylist(event);
       return addCorsHeaders(response);
     }
 

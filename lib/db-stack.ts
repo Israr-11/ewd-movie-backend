@@ -8,6 +8,7 @@ export class DbStack extends cdk.Stack {
   public readonly translationsTable: dynamodb.Table;
   public readonly favoritesTable: dynamodb.Table;
   public readonly fantasyMoviesTable: dynamodb.Table;
+  public readonly playlistsTable: dynamodb.Table;
   uploadsBucket: any;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -43,6 +44,19 @@ export class DbStack extends cdk.Stack {
 
     // Add a Global Secondary Index for querying by UserId
     this.fantasyMoviesTable.addGlobalSecondaryIndex({
+      indexName: 'UserIdIndex',
+      partitionKey: { name: 'UserId', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL
+    });
+
+
+    this.playlistsTable = new dynamodb.Table(this, 'PlaylistsTable', {
+      tableName: 'Playlists',
+      partitionKey: { name: 'Id', type: dynamodb.AttributeType.NUMBER },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    });
+    
+    this.playlistsTable.addGlobalSecondaryIndex({
       indexName: 'UserIdIndex',
       partitionKey: { name: 'UserId', type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.ALL
