@@ -24,12 +24,19 @@ export class EwdMovieBackendStack extends cdk.Stack {
         REVIEWS_TABLE: dbStack.movieReviewsTable.tableName,
         TRANSLATIONS_TABLE: dbStack.translationsTable.tableName,
         USER_POOL_ID: authStack.userPool.userPoolId,
-        USER_POOL_CLIENT_ID: authStack.userPoolClient.userPoolClientId
+        USER_POOL_CLIENT_ID: authStack.userPoolClient.userPoolClientId,
+        UPLOADS_BUCKET_NAME: dbStack.uploadsBucket.bucketName,
+        FANTASY_MOVIES_TABLE: dbStack.fantasyMoviesTable.tableName,
+        FAVORITES_TABLE: dbStack.favoritesTable.tableName,
       },
     });
 
     dbStack.movieReviewsTable.grantReadWriteData(apiLambda);
     dbStack.translationsTable.grantReadWriteData(apiLambda);
+    dbStack.favoritesTable.grantReadWriteData(apiLambda);
+    dbStack.fantasyMoviesTable.grantReadWriteData(apiLambda);
+    dbStack.uploadsBucket.grantReadWrite(apiLambda);
+
     apiLambda.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: [
@@ -44,7 +51,15 @@ export class EwdMovieBackendStack extends cdk.Stack {
 
     const api = new apigateway.RestApi(this, 'MovieReviewAPI', {
       restApiName: 'MovieReviewAPI',
+      // Add CORS configuration here
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowHeaders: ['Content-Type', 'Authorization', 'X-Amz-Date', 'X-Api-Key'],
+        allowCredentials: true
+      }
     });
+
 
 
     const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'MovieReviewAuthorizer', {
@@ -90,10 +105,21 @@ export class EwdMovieBackendStack extends cdk.Stack {
     });
 
     const getReviewsIntegration = new apigateway.LambdaIntegration(apiLambda);
-
     const moviesResource = api.root.addResource('movies');
     const movieReviewsResource = moviesResource.addResource('reviews');
     const movieIdResource = movieReviewsResource.addResource('{movieId}');
+    //API Gateway resources for the favourites
+    const apiResource = api.root.addResource('api');
+    const favoritesResource = apiResource.addResource('favorites');
+    const favIdResource = favoritesResource.addResource('{movieId}');
+    const reorderResource = favoritesResource.addResource('reorder');
+    //API Gateway resources for the fantasy movies
+    const fantasyMoviesResource = api.root.addResource('api').addResource('fantasy-movies');
+    const fantasyMovieIdResource = fantasyMoviesResource.addResource('{id}');
+    const castResource = fantasyMovieIdResource.addResource('cast');
+    //API Gateway resources for the uploads bucket
+    const uploadsResource = api.root.addResource('api').addResource('uploads');
+    const presignedUrlResource = uploadsResource.addResource('presigned-url');
 
     // GET /movies/reviews/[movieId]
     movieIdResource.addMethod('GET', getReviewsIntegration);
@@ -133,6 +159,68 @@ export class EwdMovieBackendStack extends cdk.Stack {
         validateRequestParameters: true
       })
     });
+
+
+
+    //Favorites endpoints
+
+    // POST /api/favorites - Add a movie to favorites
+    favoritesResource.addMethod('POST', getReviewsIntegration, {
+      authorizer: authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO
+    });
+
+    // GET /api/favorites - Get user's favorite movies
+    favoritesResource.addMethod('GET', getReviewsIntegration, {
+      authorizer: authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO
+    });
+
+    // DELETE /api/favorites/{movieId} - Remove a movie from favorites
+    favIdResource.addMethod('DELETE', getReviewsIntegration, {
+      authorizer: authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO
+    });
+
+    // PUT /api/favorites/reorder - Reorder favorites
+    reorderResource.addMethod('PUT', getReviewsIntegration, {
+      authorizer: authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO
+    });
+
+
+    //Fantasy Movies endpoints
+
+    // POST /api/fantasy-movies - Create a fantasy movie
+    fantasyMoviesResource.addMethod('POST', getReviewsIntegration, {
+      authorizer: authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO
+    });
+
+    // GET /api/fantasy-movies - Get user's fantasy movies
+    fantasyMoviesResource.addMethod('GET', getReviewsIntegration, {
+      authorizer: authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO
+    });
+
+    // DELETE /api/fantasy-movies/{id} - Delete a fantasy movie
+    fantasyMovieIdResource.addMethod('DELETE', getReviewsIntegration, {
+      authorizer: authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO
+    });
+
+    // POST /api/fantasy-movies/{id}/cast - Add cast member to fantasy movie
+    castResource.addMethod('POST', getReviewsIntegration, {
+      authorizer: authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO
+    });
+
+    // POST /api/uploads/presigned-url - Get a presigned URL for uploading
+    presignedUrlResource.addMethod('POST', getReviewsIntegration, {
+      authorizer: authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO
+    });
+
 
 
     // Auth endpoints

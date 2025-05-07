@@ -9,6 +9,7 @@ export const getMovieReviews = async (event: APIGatewayEvent) => {
     const reviewId = event.queryStringParameters?.reviewId ?
         Number(event.queryStringParameters.reviewId) : undefined;
     const reviewerEmail = event.queryStringParameters?.reviewerName;
+    const userId = event.queryStringParameters?.sub;
 
     if (!movieId) return { statusCode: 400, body: 'Movie ID is required' };
 
@@ -19,7 +20,10 @@ export const getMovieReviews = async (event: APIGatewayEvent) => {
         filteredReviews = reviews.filter(r => r.ReviewId === reviewId);
     }
     if (reviewerEmail) {
-        filteredReviews = reviews.filter(r => r.ReviewerId === reviewerEmail);
+        filteredReviews = reviews.filter(r => r.ReviewerEmail === reviewerEmail);
+    }
+    if (userId) {
+        filteredReviews = reviews.filter(r => r.UserId === userId);
     }
 
     return { statusCode: 200, body: JSON.stringify(filteredReviews) };
@@ -27,11 +31,12 @@ export const getMovieReviews = async (event: APIGatewayEvent) => {
 
 export const addReview = async (event: APIGatewayEvent) => {
     const userEmail = event.requestContext.authorizer?.claims?.email;
-    if (!userEmail) return { statusCode: 401, body: 'Unauthorized' };
-    const { review } = JSON.parse(event.body || '{}');
+    const userId = event.requestContext.authorizer?.claims?.sub;
+    if (!userEmail || !userId) return { statusCode: 401, body: 'Unauthorized' };
+    const { review,  movieId, rating} = JSON.parse(event.body || '{}');
     if (!review) return { statusCode: 400, body: 'Missing required fields' };
 
-    const newReview = await reviewService.addReview(review, userEmail);
+    const newReview = await reviewService.addReview(review, userEmail, userId, movieId, rating);
     return { statusCode: 201, body: JSON.stringify(newReview) };
 };
 
@@ -40,7 +45,7 @@ export const updateReview = async (event: APIGatewayEvent) => {
     const reviewId = Number(event.pathParameters?.reviewId);
     const { newContent } = JSON.parse(event.body || '{}');
 
-    const userEmail = event.requestContext.authorizer?.claims?.email;
+    const userId = event.requestContext.authorizer?.claims?.sub;
 
     const reviews = await reviewService.getReviewsByMovieId(movieId);
     const review = reviews.find(r => r.ReviewId === reviewId);
@@ -48,7 +53,7 @@ export const updateReview = async (event: APIGatewayEvent) => {
         return { statusCode: 404, body: 'Review not found' };
     }
 
-    if (review.ReviewerId !== userEmail) {
+    if (review.UserId !== userId) {
         return { statusCode: 403, body: 'Not authorized to update this review' };
     }
 
