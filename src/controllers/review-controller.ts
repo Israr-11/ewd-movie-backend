@@ -5,26 +5,24 @@ import { TranslateService } from '../services/translate-service';
 const reviewService = new ReviewService();
 
 export const getMovieReviews = async (event: APIGatewayEvent) => {
-    // Check if movieId is provided in the path
-    const movieId = event.pathParameters?.movieId ? Number(event.pathParameters.movieId) : undefined;
-    
-    // If no movieId is provided, return all reviews
-    if (!movieId) {
+    const userId = event.pathParameters?.userId;
+
+    if (!userId) {
         const allReviews = await reviewService.getAllReviews();
         return { statusCode: 200, body: JSON.stringify(allReviews) };
     }
-    
-    // Otherwise, get reviews for the specific movieId
-    const reviews = await reviewService.getReviewsByMovieId(movieId);
+
+    const reviews = await reviewService.getReviewsByUserId(userId);
     return { statusCode: 200, body: JSON.stringify(reviews) };
 };
+
 
 
 export const addReview = async (event: APIGatewayEvent) => {
     const userEmail = event.requestContext.authorizer?.claims?.email;
     const userId = event.requestContext.authorizer?.claims?.sub;
     if (!userEmail || !userId) return { statusCode: 401, body: 'Unauthorized' };
-    const { review,  movieId, rating} = JSON.parse(event.body || '{}');
+    const { review, movieId, rating } = JSON.parse(event.body || '{}');
     if (!review) return { statusCode: 400, body: 'Missing required fields' };
 
     const newReview = await reviewService.addReview(review, userEmail, userId, rating, movieId);

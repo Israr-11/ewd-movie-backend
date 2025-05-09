@@ -45,10 +45,9 @@ export class AuthStack extends cdk.Stack {
 
     this.userPoolClient = new cognito.UserPoolClient(this, 'MovieReviewUserPoolClient', {
       userPool: this.userPool,
-      // Enable all auth flows, especially userPassword which is needed for USER_PASSWORD_AUTH
       authFlows: {
         adminUserPassword: true,
-        userPassword: true,  // This is critical for USER_PASSWORD_AUTH
+        userPassword: true,  
         userSrp: true,
         custom: true
       },

@@ -10,7 +10,6 @@ export class ReviewService {
 
     constructor() {
         this.dbClient = new DynamoDBClient({});
-        // Configure the document client with proper unmarshalling options
         this.docClient = DynamoDBDocumentClient.from(this.dbClient, {
             marshallOptions: {
                 convertEmptyValues: true,
@@ -28,7 +27,7 @@ export class ReviewService {
         const command = new QueryCommand({
             TableName: this.tableName,
             KeyConditionExpression: 'MovieId = :movieId AND ReviewId = :reviewId',
-            ExpressionAttributeValues: { 
+            ExpressionAttributeValues: {
                 ':movieId': movieId,
                 ':reviewId': reviewId
             }
@@ -61,43 +60,53 @@ export class ReviewService {
         return result.Attributes?.Counter;
     }
 
-    
+
     async getAllReviews(): Promise<Review[]> {
         try {
-            // Use the base ScanCommand to get raw DynamoDB format
             const command = new ScanCommand({
                 TableName: this.tableName
             });
-        
+
             const result = await this.dbClient.send(command);
-            
-            // Manually convert the DynamoDB format to Review objects
+
             if (result.Items && result.Items.length > 0) {
                 return result.Items.map(item => ({
                     MovieId: Number(item.MovieId?.N || 0),
                     ReviewId: Number(item.ReviewId?.N || 0),
-                    Content: item.Content?.S || '', // Provide default empty string
-                    ReviewDate: item.ReviewDate?.S || new Date().toISOString().split('T')[0], // Default to today
+                    Content: item.Content?.S || '',
+                    ReviewDate: item.ReviewDate?.S || new Date().toISOString().split('T')[0],
                     Rating: Number(item.Rating?.N || 0),
-                    UserId: item.UserId?.S || '', // Provide default empty string
-                    ReviewerEmail: item.ReviewerEmail?.S || '' // Provide default empty string
+                    UserId: item.UserId?.S || '',
+                    ReviewerEmail: item.ReviewerEmail?.S || ''
                 }));
             }
-            
+
             return [];
         } catch (error) {
             console.error('Error in getAllReviews:', error);
             return [];
         }
     }
-    
-    
+
+
 
     async getReviewsByMovieId(movieId: number): Promise<Review[]> {
         const command = new QueryCommand({
             TableName: this.tableName,
             KeyConditionExpression: 'MovieId = :movieId',
             ExpressionAttributeValues: { ':movieId': movieId }
+        });
+
+        const result = await this.docClient.send(command);
+        return result.Items as Review[] || [];
+    }
+
+    async getReviewsByUserId(userId: string): Promise<Review[]> {
+        const command = new QueryCommand({
+            TableName: this.tableName,
+            IndexName: 'UserIdIndex',
+            KeyConditionExpression: 'UserId = :userId',
+            ExpressionAttributeValues: { ':userId': userId }
         });
 
         const result = await this.docClient.send(command);
