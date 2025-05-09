@@ -10,25 +10,33 @@
 
 ## Overview
 
-A serverless movie backend API built with AWS CDK and TypeScript, enabling users to register, log in, create, update, retrieve, and translate movie reviews.
+A serverless movie backend API built with AWS CDK and TypeScript, enabling users to register, log in, create, update, retrieve, and translate movie reviews. The application also includes features for managing favorite movies, creating fantasy movies with custom casts, organizing movies into playlists, and uploading media to S3.
+
 
 ### **Movie Review Management**
-- Get movie reviews by filtering by movie ID and reviewer's email.
-- Add new reviews with authorization.
-- Update existing reviews with authorization.
-- Translate reviews to different languages.
+- Get reviews by user ID
+- Add new reviews with authorization
+- Update existing reviews with authorization
+- Translate reviews to different languages
+
+### **User Features**
+- Manage favorite movies with custom ordering
+- Create fantasy movies with custom cast members
+- Upload movie posters to S3 using presigned URLs
+- Create and manage movie playlists
 
 ### **Security & Authorization**
-- Cognito-based user authentication.
-- User-specific review management.
-- Protected review updates.
+- Cognito-based user authentication
+- User-specific content management
+- Protected routes with JWT validation
+- S3 presigned URLs for secure file uploads
 
 ### **Architecture**
 The project leverages several AWS services:
 - **AWS Lambda** - Serverless compute for review operations.
 - **API Gateway** - RESTful API endpoints.
 - **DynamoDB** - Review and translation data persistence.
-- **Amazon Translate** - Review translation capabilities.
+- **Amazon S3** - Storage for movie posters and other media.
 - **Cognito** - User authentication and authorization.
 
 ---
@@ -41,18 +49,86 @@ The project leverages several AWS services:
 - `POST /auth/logout` - User logout.
 
 ### **Movie Review Endpoints**
-- `GET /movies/reviews/{movieId}?reviewerName=email@example.com` - Get reviews filtered by reviewer email and movie ID.
+- `GET /movies/reviews/?userId=123` - Get reviews filtered by user ID
 - `POST /movies/reviews` - Add new review (authenticated).
 - `PUT /movies/{movieId}/reviews/{reviewId}` - Update review (authenticated).
 - `GET /reviews/{reviewId}/{movieId}/translation?language=es` - Get translated review.
 
+
+### **Favorites Endpoints**
+
+- `POST /api/favorites`  
+  Add a movie to favorites (**Authenticated**)
+
+- `GET /api/favorites`  
+  Get the authenticated user's favorite movies (**Authenticated**)
+
+- `DELETE /api/favorites/{movieId}`  
+  Remove a movie from favorites (**Authenticated**)
+
+- `PUT /api/favorites/reorder`  
+  Reorder favorite movies (**Authenticated**)
+
+
+### **Fantasy Movies Endpoints**
+
+- `POST /api/fantasy-movies`  
+  Create a new fantasy movie (**Authenticated**)
+
+- `GET /api/fantasy-movies`  
+  Retrieve all fantasy movies created by the authenticated user (**Authenticated**)
+
+- `DELETE /api/fantasy-movies/{id}`  
+  Delete a fantasy movie (**Authenticated**)
+
+- `POST /api/fantasy-movies/{id}/cast`  
+  Add a cast member to a fantasy movie (**Authenticated**)
+
+- `POST /api/uploads/presigned-url`  
+  Get a pre-signed URL to securely upload a movie poster to S3 (**Authenticated**)
+
+### **Playlist Endpoints**
+
+- `POST /api/playlists`  
+  Create a new movie playlist (**Authenticated**)
+
+- `GET /api/playlists`  
+  Get the authenticated user's playlists (**Authenticated**)
+
+- `DELETE /api/playlists/{id}`  
+  Delete a playlist (**Authenticated**)
+
+- `POST /api/playlists/{id}/movies`  
+  Add a movie to a specific playlist (**Authenticated**)
+
+- `DELETE /api/playlists/{id}/movies/{movieId}`  
+  Remove a movie from a playlist (**Authenticated**)
+
 ---
+
 
 ## Features
 
 ### **Translation Persistence**
 
 I have implemented translation persistence, which caches translations to avoid repeated AWS translation requests. Translations are stored in the database in a new Table named ReviewTranslations containing the movie and review IDs of the Review Table. This way, future translation requests are served directly from the database instead of making repeated API calls to AWS.
+
+### **Media Upload with S3**
+
+The application supports uploading movie posters and other media to Amazon S3. I've implemented a secure upload mechanism using presigned URLs, which allows users to upload files directly to S3 without exposing AWS credentials. The S3 bucket is configured with CORS to allow uploads from the frontend application.
+
+### **Fantasy Movies with Custom Cast**
+
+Users can create their own fantasy movies with custom titles, descriptions, and cast members. This feature demonstrates complex data modeling with DynamoDB, including handling nested attributes and reserved keywords.
+
+### **Movie Playlists**
+
+Users can create and manage movie playlists, adding and removing movies as desired. This feature showcases many-to-many relationships in a NoSQL database context.
+
+### **Favorites with auto Ordering**
+The favorites feature allows users to maintain a personalized list of favorite movies with auto ordering. Users can add, remove, and it reorder their favorites, demonstrating advanced DynamoDB operations.
+
+
 
 **Example of stored translation in the database:**
 
