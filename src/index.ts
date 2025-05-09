@@ -15,7 +15,6 @@ const corsHeaders = {
   'Access-Control-Allow-Credentials': 'true'
 };
 
-// Helper function to add CORS headers to responses
 const addCorsHeaders = (response: any) => {
   return {
     ...response,
@@ -28,7 +27,6 @@ const addCorsHeaders = (response: any) => {
 
 export const handler = async (event: APIGatewayEvent) => {
   try {
-    // Handle OPTIONS requests for CORS preflight
     if (event.httpMethod === 'OPTIONS') {
       return {
         statusCode: 200,
@@ -39,13 +37,13 @@ export const handler = async (event: APIGatewayEvent) => {
 
     let response;
 
-    // GET /movies/reviews (get all reviews) or GET /movies/reviews/{movieId} (get reviews for specific movie)
+    // /movies/reviews/{userId}
+
     if (event.httpMethod === 'GET' &&
       (event.path === '/movies/reviews' || event.path.match(/\/movies\/reviews\/\d+$/))) {
       response = await getMovieReviews(event);
       return addCorsHeaders(response);
     }
-
 
     // POST /movies/reviews
     if (event.httpMethod === 'POST' && event.path === '/movies/reviews') {
@@ -129,8 +127,7 @@ export const handler = async (event: APIGatewayEvent) => {
     }
 
     // Playlist endpoints
-    // Add these handlers to your existing handler function
-    // Playlist endpoints
+
     if (event.path === '/api/playlists' && event.httpMethod === 'POST') {
       response = await createPlaylist(event);
       return addCorsHeaders(response);
@@ -156,10 +153,8 @@ export const handler = async (event: APIGatewayEvent) => {
       return addCorsHeaders(response);
     }
 
-    // Not found response
     return addCorsHeaders({ statusCode: 404, body: 'Not Found' });
   } catch (error) {
-    // Error response
     return addCorsHeaders({
       statusCode: 500,
       body: JSON.stringify({ message: 'Internal Server Error', error })

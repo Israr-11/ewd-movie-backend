@@ -35,14 +35,12 @@ export class DbStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     });
 
-    // Add this to your DbStack class
     this.fantasyMoviesTable = new dynamodb.Table(this, 'FantasyMoviesTable', {
       tableName: 'FantasyMovies',
       partitionKey: { name: 'Id', type: dynamodb.AttributeType.NUMBER },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     });
 
-    // Add a Global Secondary Index for querying by UserId
     this.fantasyMoviesTable.addGlobalSecondaryIndex({
       indexName: 'UserIdIndex',
       partitionKey: { name: 'UserId', type: dynamodb.AttributeType.STRING },
@@ -55,7 +53,7 @@ export class DbStack extends cdk.Stack {
       partitionKey: { name: 'Id', type: dynamodb.AttributeType.NUMBER },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     });
-    
+
     this.playlistsTable.addGlobalSecondaryIndex({
       indexName: 'UserIdIndex',
       partitionKey: { name: 'UserId', type: dynamodb.AttributeType.STRING },
@@ -65,7 +63,7 @@ export class DbStack extends cdk.Stack {
     this.uploadsBucket = new s3.Bucket(this, 'UploadsBucket', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
-      publicReadAccess: true,  // Make objects publicly readable
+      publicReadAccess: true,
       blockPublicAccess: new s3.BlockPublicAccess({
         blockPublicAcls: false,
         blockPublicPolicy: false,
@@ -75,14 +73,12 @@ export class DbStack extends cdk.Stack {
       cors: [
         {
           allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.PUT, s3.HttpMethods.POST],
-          allowedOrigins: ['*'], // Restrict this in production
+          allowedOrigins: ['*'],
           allowedHeaders: ['*'],
           maxAge: 3000
         }
       ]
     });
-    
-
 
     new cdk.CfnOutput(this, 'TableName', { value: this.movieReviewsTable.tableName });
     new cdk.CfnOutput(this, 'FavoritesTableName', { value: this.favoritesTable.tableName });

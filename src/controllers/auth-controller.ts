@@ -32,7 +32,6 @@ export const signUp = async (event: APIGatewayEvent) => {
 export const signIn = async (event: APIGatewayEvent) => {
   const { email, password } = JSON.parse(event.body || '{}');
 
-  // Make sure we're using the correct auth flow that's enabled in the user pool client
   const command = new InitiateAuthCommand({
     AuthFlow: 'USER_PASSWORD_AUTH',
     ClientId: clientId,

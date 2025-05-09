@@ -13,12 +13,11 @@ export class FavoriteService {
     }
 
     async addFavorite(userId: string, movieId: number): Promise<Favorite> {
-        // Get current max order for this user
         const currentFavorites = await this.getUserFavorites(userId);
-        const maxOrder = currentFavorites.length > 0 
+        const maxOrder = currentFavorites.length > 0
             ? Math.max(...currentFavorites.map(f => f.Order))
             : 0;
-        
+
         const now = new Date();
         const favorite: Favorite = {
             UserId: userId,
@@ -30,7 +29,6 @@ export class FavoriteService {
         const command = new PutCommand({
             TableName: this.tableName,
             Item: favorite,
-            // Don't overwrite if already exists
             ConditionExpression: 'attribute_not_exists(UserId) OR attribute_not_exists(MovieId)'
         });
 
@@ -54,8 +52,7 @@ export class FavoriteService {
         });
 
         await this.docClient.send(command);
-        
-        // Reorder remaining favorites to ensure no gaps
+
         await this.reorderFavorites(userId);
     }
 
@@ -68,18 +65,16 @@ export class FavoriteService {
 
         const result = await this.docClient.send(command);
         const favorites = result.Items as Favorite[] || [];
-        
-        // Sort by Order
+
         return favorites.sort((a, b) => a.Order - b.Order);
     }
 
-    async reorderFavorites(userId: string, newOrder?: {movieId: number, order: number}[]): Promise<Favorite[]> {
+    async reorderFavorites(userId: string, newOrder?: { movieId: number, order: number }[]): Promise<Favorite[]> {
         const favorites = await this.getUserFavorites(userId);
-        
+
         if (newOrder) {
-            // Apply custom ordering
             const updates = [];
-            
+
             for (const item of newOrder) {
                 const favorite = favorites.find(f => f.MovieId === item.movieId);
                 if (favorite) {
@@ -93,19 +88,17 @@ export class FavoriteService {
                     });
                 }
             }
-            
+
             if (updates.length > 0) {
-                // Use BatchWrite for efficiency
                 const command = new BatchWriteCommand({
                     RequestItems: {
                         [this.tableName]: updates
                     }
                 });
-                
+
                 await this.docClient.send(command);
             }
         } else {
-            // Just ensure sequential ordering (after a delete)
             const updates = favorites.map((fav, index) => ({
                 PutRequest: {
                     Item: {
@@ -114,18 +107,18 @@ export class FavoriteService {
                     }
                 }
             }));
-            
+
             if (updates.length > 0) {
                 const command = new BatchWriteCommand({
                     RequestItems: {
                         [this.tableName]: updates
                     }
                 });
-                
+
                 await this.docClient.send(command);
             }
         }
-        
+
         return this.getUserFavorites(userId);
     }
 }

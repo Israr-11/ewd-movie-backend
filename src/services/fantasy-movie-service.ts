@@ -14,7 +14,7 @@ export class FantasyMovieService {
 
     async createFantasyMovie(movieData: Omit<FantasyMovie, 'Id' | 'CreatedDate'>, userId: string): Promise<FantasyMovie> {
         const now = new Date();
-        
+
         const fantasyMovie: FantasyMovie = {
             Id: Math.floor(now.getTime() / 1000),
             UserId: userId,
@@ -41,7 +41,7 @@ export class FantasyMovieService {
     async getUserFantasyMovies(userId: string): Promise<FantasyMovie[]> {
         const command = new QueryCommand({
             TableName: this.tableName,
-            IndexName: 'UserIdIndex', // You'll need to create this GSI
+            IndexName: 'UserIdIndex',
             KeyConditionExpression: 'UserId = :userId',
             ExpressionAttributeValues: { ':userId': userId }
         });
@@ -61,17 +61,16 @@ export class FantasyMovieService {
     }
 
     async deleteFantasyMovie(id: number, userId: string): Promise<boolean> {
-        // First verify the movie belongs to the user
         const movie = await this.getFantasyMovieById(id);
-        
+
         if (!movie) {
             return false;
         }
-        
+
         if (movie.UserId !== userId) {
             throw new Error('Not authorized to delete this fantasy movie');
         }
-        
+
         const command = new DeleteCommand({
             TableName: this.tableName,
             Key: { Id: id }
@@ -82,19 +81,18 @@ export class FantasyMovieService {
     }
 
     async addCastMember(id: number, userId: string, castMember: CastMember): Promise<FantasyMovie | null> {
-        // First verify the movie belongs to the user
         const movie = await this.getFantasyMovieById(id);
-        
+
         if (!movie) {
             return null;
         }
-        
+
         if (movie.UserId !== userId) {
             throw new Error('Not authorized to update this fantasy movie');
         }
-        
+
         const updatedCast = [...movie.Cast, castMember];
-        
+
         const command = new UpdateCommand({
             TableName: this.tableName,
             Key: { Id: id },
@@ -103,7 +101,7 @@ export class FantasyMovieService {
             ExpressionAttributeValues: { ':cast': updatedCast },
             ReturnValues: 'ALL_NEW'
         });
-        
+
         const result = await this.docClient.send(command);
         return result.Attributes as FantasyMovie;
     }

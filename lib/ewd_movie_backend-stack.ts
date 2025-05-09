@@ -53,7 +53,6 @@ export class EwdMovieBackendStack extends cdk.Stack {
 
     const api = new apigateway.RestApi(this, 'MovieReviewAPI', {
       restApiName: 'MovieReviewAPI',
-      // Add CORS configuration here
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
@@ -106,37 +105,33 @@ export class EwdMovieBackendStack extends cdk.Stack {
     const getReviewsIntegration = new apigateway.LambdaIntegration(apiLambda);
     const moviesResource = api.root.addResource('movies');
     const movieReviewsResource = moviesResource.addResource('reviews');
-    const movieIdResource = movieReviewsResource.addResource('{movieId}');
+    const userIdResource = movieReviewsResource.addResource('{userId}');
 
-    // Create the main API resource
     const apiResource = api.root.addResource('api');
 
     //API Gateway resources for the favourites
     const favoritesResource = apiResource.addResource('favorites');
     const favIdResource = favoritesResource.addResource('{movieId}');
     const reorderResource = favoritesResource.addResource('reorder');
-    
+
     //API Gateway resources for the fantasy movies
-    // FIX: Use the apiResource directly instead of creating a new 'api' resource
     const fantasyMoviesResource = apiResource.addResource('fantasy-movies');
     const fantasyMovieIdResource = fantasyMoviesResource.addResource('{id}');
     const castResource = fantasyMovieIdResource.addResource('cast');
-    
+
     //API Gateway resources for the uploads bucket
-    // FIX: Use the apiResource directly instead of creating a new 'api' resource
     const uploadsResource = apiResource.addResource('uploads');
     const presignedUrlResource = uploadsResource.addResource('presigned-url');
-    
+
     //API Gateway resources for the playlists
-    // FIX: Use the apiResource directly instead of creating a new 'api' resource
     const playlistsResource = apiResource.addResource('playlists');
     const playlistIdResource = playlistsResource.addResource('{id}');
     const playlistMoviesResource = playlistIdResource.addResource('movies');
     const playlistMovieIdResource = playlistMoviesResource.addResource('{movieId}');
 
     // GET /movies/reviews/[movieId]
-    movieIdResource.addMethod('GET', getReviewsIntegration);
-    movieReviewsResource.addMethod('GET', getReviewsIntegration); 
+    userIdResource.addMethod('GET', getReviewsIntegration);
+    movieReviewsResource.addMethod('GET', getReviewsIntegration);
 
     // POST /movies/reviews
     movieReviewsResource.addMethod('POST', getReviewsIntegration, {
@@ -194,7 +189,6 @@ export class EwdMovieBackendStack extends cdk.Stack {
       authorizationType: apigateway.AuthorizationType.COGNITO
     });
 
-    // PUT /api/favorites/reorder - Reorder favorites
     reorderResource.addMethod('PUT', getReviewsIntegration, {
       authorizer: authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO
@@ -233,6 +227,7 @@ export class EwdMovieBackendStack extends cdk.Stack {
     });
 
     // Playlists endpoints
+
     // POST /api/playlists - Create a movie playlist
     playlistsResource.addMethod('POST', getReviewsIntegration, {
       authorizer: authorizer,
